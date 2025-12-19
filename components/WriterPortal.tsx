@@ -237,24 +237,15 @@ const WriterPortal: React.FC<WriterPortalProps> = ({
                         const isNearby = assigner?.pincode === user.pincode;
 
                         return (
-                          <div key={t.id} className="relative">
-                            {(isSameCollege || isNearby) && (
-                              <div className="absolute -top-2 left-6 z-10 flex gap-1">
-                                {isSameCollege && (
-                                  <span className="bg-indigo-600 text-white text-[7px] font-black uppercase px-2 py-1 rounded-lg shadow-md">College Match</span>
-                                )}
-                                {isNearby && (
-                                  <span className="bg-amber-500 text-white text-[7px] font-black uppercase px-2 py-1 rounded-lg shadow-md">Nearby</span>
-                                )}
-                              </div>
-                            )}
-                            <TaskCard task={t} onClick={() => setSelectedTaskId(t.id)} role="writer" />
-                            {assigner && (
-                              <div className="absolute bottom-4 right-16 pointer-events-none opacity-40">
-                                <p className="text-[7px] font-black text-slate-400 uppercase">{assigner.collegeName}</p>
-                              </div>
-                            )}
-                          </div>
+                          <TaskCard 
+                            key={t.id} 
+                            task={t} 
+                            onClick={() => setSelectedTaskId(t.id)} 
+                            role="writer" 
+                            collegeName={assigner?.collegeName}
+                            isCollegeMatch={isSameCollege}
+                            isNearby={isNearby}
+                          />
                         );
                       })}
                     </div>
@@ -278,7 +269,18 @@ const WriterPortal: React.FC<WriterPortalProps> = ({
                         <div className="space-y-4">
                           <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] ml-2">Currently Working On</h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {inProgressTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => setSelectedTaskId(t.id)} role="writer" />)}
+                            {inProgressTasks.map(t => {
+                              const assigner = getAssignerInfo(t.assignerId);
+                              return (
+                                <TaskCard 
+                                  key={t.id} 
+                                  task={t} 
+                                  onClick={() => setSelectedTaskId(t.id)} 
+                                  role="writer" 
+                                  collegeName={assigner?.collegeName}
+                                />
+                              );
+                            })}
                           </div>
                         </div>
                       )}

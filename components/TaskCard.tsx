@@ -6,82 +6,99 @@ interface TaskCardProps {
   task: Task;
   onClick: () => void;
   role: 'assigner' | 'writer';
+  collegeName?: string;
+  isCollegeMatch?: boolean;
+  isNearby?: boolean;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, role }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ 
+  task, 
+  onClick, 
+  role, 
+  collegeName, 
+  isCollegeMatch, 
+  isNearby 
+}) => {
   const statusColors: Record<TaskStatus, string> = {
-    [TaskStatus.PENDING]: 'bg-slate-100 text-slate-600',
-    [TaskStatus.REQUESTED]: 'bg-amber-100 text-amber-600',
-    [TaskStatus.IN_PROGRESS]: 'bg-indigo-100 text-indigo-600',
-    [TaskStatus.REVIEW]: 'bg-purple-100 text-purple-600',
-    [TaskStatus.COMPLETED]: 'bg-emerald-100 text-emerald-600',
-    [TaskStatus.CANCELLED]: 'bg-rose-100 text-rose-600',
+    [TaskStatus.PENDING]: 'bg-slate-50 text-slate-500 border-slate-100',
+    [TaskStatus.REQUESTED]: 'bg-amber-50 text-amber-600 border-amber-100',
+    [TaskStatus.IN_PROGRESS]: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+    [TaskStatus.REVIEW]: 'bg-purple-50 text-purple-600 border-purple-100',
+    [TaskStatus.COMPLETED]: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+    [TaskStatus.CANCELLED]: 'bg-rose-50 text-rose-600 border-rose-100',
   };
-
-  const deadlineDate = new Date(task.deadline);
-  const isUrgent = (deadlineDate.getTime() - Date.now()) < (1000 * 60 * 60 * 24 * 3); 
 
   return (
     <div 
       onClick={onClick}
-      className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-indigo-500/5 hover:border-indigo-100 transition-all cursor-pointer group relative overflow-hidden"
+      className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-indigo-100 transition-all cursor-pointer group relative overflow-hidden"
     >
-      <div className="flex justify-between items-start mb-4">
-        <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${statusColors[task.status]}`}>
-          {task.status}
-        </span>
-        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-black uppercase tracking-tighter">
-          <i className="far fa-clock"></i>
-          <span className={isUrgent ? 'text-rose-500' : ''}>
-            {task.deadline}
-          </span>
-        </div>
-      </div>
-
-      <h3 className="font-black text-slate-800 mb-2 group-hover:text-indigo-600 transition-colors line-clamp-1 text-sm tracking-tight">
-        {task.title}
-      </h3>
-      
-      <p className="text-[11px] text-slate-500 mb-4 line-clamp-2 leading-relaxed font-medium">
-        {task.description}
-      </p>
-
-      {task.status === TaskStatus.IN_PROGRESS && (
-        <div className="mb-4 space-y-1.5">
-           <div className="flex justify-between text-[8px] font-black text-indigo-400 uppercase tracking-widest">
-              <span>Work Progress</span>
-              <span>65%</span>
-           </div>
-           <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-indigo-500 w-[65%] rounded-full shadow-[0_0_8px_rgba(99,102,241,0.4)]"></div>
-           </div>
-        </div>
-      )}
-
+      {/* Top Badges Area */}
       <div className="flex flex-wrap gap-2 mb-4">
-        <span className="text-[9px] px-2 py-1 bg-slate-50 rounded-lg text-slate-500 font-black uppercase border border-slate-100">
-          <i className="fas fa-book mr-1 text-indigo-300"></i> {task.subject}
-        </span>
-        <span className="text-[9px] px-2 py-1 bg-slate-50 rounded-lg text-slate-500 font-black uppercase border border-slate-100">
-          <i className="fas fa-file-alt mr-1 text-indigo-300"></i> {task.pageCount} Pgs
-        </span>
-        {task.attachments && task.attachments.length > 0 && (
-          <span className="text-[9px] px-2 py-1 bg-indigo-50 rounded-lg text-indigo-500 font-black uppercase border border-indigo-100">
-            <i className="fas fa-paperclip mr-1"></i> {task.attachments.length} Files
+        {isCollegeMatch && (
+          <span className="bg-indigo-600 text-white text-[8px] font-black uppercase px-3 py-1.5 rounded-xl shadow-lg shadow-indigo-200 animate-in fade-in slide-in-from-top-2">
+            College Match
+          </span>
+        )}
+        {isNearby && (
+          <span className="bg-amber-500 text-white text-[8px] font-black uppercase px-3 py-1.5 rounded-xl shadow-lg shadow-amber-200 animate-in fade-in slide-in-from-top-2">
+            Nearby
           </span>
         )}
       </div>
 
-      <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
-        <div>
-          <p className="text-[8px] text-slate-400 font-black uppercase tracking-widest">Expected Pay</p>
-          <p className="text-lg font-black text-slate-800">
-            ₹{task.agreedPrice || task.estimatedPrice}
-          </p>
+      {/* Status and Deadline */}
+      <div className="flex justify-between items-center mb-5">
+        <span className={`text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-2xl border ${statusColors[task.status]}`}>
+          {task.status}
+        </span>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-bold uppercase tracking-tighter">
+          <i className="far fa-clock"></i>
+          <span>{task.deadline}</span>
         </div>
-        <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:scale-110 shadow-sm">
-          <i className="fas fa-arrow-right text-xs"></i>
+      </div>
+
+      {/* Content */}
+      <h3 className="font-black text-slate-800 mb-3 group-hover:text-indigo-600 transition-colors text-base tracking-tight leading-tight">
+        {task.title}
+      </h3>
+      
+      <p className="text-[12px] text-slate-500 mb-6 line-clamp-2 leading-relaxed font-medium">
+        {task.description}
+      </p>
+
+      {/* Pill Indicators */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <span className="flex items-center gap-2 text-[10px] px-4 py-2 bg-slate-50 rounded-2xl text-slate-500 font-black uppercase border border-slate-100/50">
+          <i className="fas fa-book text-indigo-400"></i> {task.subject}
+        </span>
+        <span className="flex items-center gap-2 text-[10px] px-4 py-2 bg-slate-50 rounded-2xl text-slate-500 font-black uppercase border border-slate-100/50">
+          <i className="fas fa-file-alt text-indigo-400"></i> {task.pageCount} Pgs
+        </span>
+      </div>
+
+      {/* Bottom Section */}
+      <div className="pt-6 border-t border-slate-50">
+        <div className="flex items-end justify-between mb-4">
+          <div>
+            <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.1em] mb-1">Expected Pay</p>
+            <p className="text-2xl font-black text-slate-800 leading-none">
+              ₹{task.agreedPrice || task.estimatedPrice}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:scale-110 shadow-sm border border-slate-100">
+            <i className="fas fa-arrow-right text-xs"></i>
+          </div>
         </div>
+        
+        {/* College Name Footer */}
+        {collegeName && (
+          <div className="text-center mt-2 opacity-50">
+            <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest leading-relaxed line-clamp-1">
+              {collegeName}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

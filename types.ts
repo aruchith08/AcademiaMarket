@@ -2,8 +2,8 @@
 export type UserRole = 'assigner' | 'writer';
 
 export enum TaskStatus {
-  PENDING = 'Pending', // Publicly visible
-  REQUESTED = 'Requested', // Handshake in progress
+  PENDING = 'Pending',
+  REQUESTED = 'Requested',
   IN_PROGRESS = 'In Progress',
   REVIEW = 'In Review',
   COMPLETED = 'Completed',
@@ -14,7 +14,8 @@ export interface TaskAttachment {
   name: string;
   type: string;
   size: number;
-  data: string; // Base64 representation for frontend-only persistence
+  url: string; // URL from Firebase Storage
+  path?: string; // Reference path in storage
 }
 
 export interface Task {
@@ -34,32 +35,19 @@ export interface Task {
   bargainEnabled: boolean;
   attachments?: TaskAttachment[];
   handshakeStatus?: 'none' | 'writer_requested' | 'assigner_invited' | 'accepted';
-  previewUrl?: string;
-  submissionUrl?: string;
-  // Mutual rating fields
-  ratingFromAssigner?: number;
-  reviewFromAssigner?: string;
-  ratingFromWriter?: number;
-  reviewFromWriter?: string;
-}
-
-export interface HubActivity {
-  id: string;
-  type: 'alert' | 'success' | 'info' | 'message';
-  title: string;
-  content: string;
-  timestamp: string;
-  icon: string;
+  lastMessage?: string;
+  lastMessageAt?: any;
 }
 
 export interface Message {
   id: string;
   taskId: string;
   senderId: string;
+  senderName: string;
   text: string;
-  timestamp: string;
-  type: 'text' | 'bargain_offer' | 'file' | 'system';
-  offerAmount?: number;
+  timestamp: any; // Firestore Timestamp
+  type: 'text' | 'file' | 'system';
+  fileUrl?: string;
 }
 
 export interface UserProfile {
@@ -76,5 +64,4 @@ export interface UserProfile {
   bio?: string;
   specialties?: string[];
   isBusy?: boolean;
-  pastWork?: string[]; // Titles of old tasks
 }

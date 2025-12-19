@@ -4,7 +4,6 @@ import { Task, UserProfile, TaskStatus } from '../types.ts';
 import TaskCard from './TaskCard.tsx';
 import Dashboard from './Dashboard.tsx';
 import MessagesHub from './MessagesHub.tsx';
-import RatingModal from './RatingModal.tsx';
 
 interface WriterPortalProps {
   user: UserProfile;
@@ -12,65 +11,54 @@ interface WriterPortalProps {
   onUpdateTasks: (tasks: Task[]) => void;
   onUpdateUser: (user: UserProfile) => void;
   onLogout: () => void;
+  onFirestoreUpdate: (taskId: string, updates: Partial<Task>) => Promise<void>;
 }
 
-const WriterPortal: React.FC<WriterPortalProps> = ({ user, tasks, onUpdateTasks, onUpdateUser, onLogout }) => {
+const WriterPortal: React.FC<WriterPortalProps> = ({ 
+  user, 
+  tasks, 
+  onUpdateUser, 
+  onLogout, 
+  onFirestoreUpdate 
+}) => {
   const [activeTab, setActiveTab] = useState<'home' | 'board' | 'my-projects' | 'messages' | 'profile'>('home');
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [ratingTask, setRatingTask] = useState<Task | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   
   const [editPrice, setEditPrice] = useState(user.pricePerPage || 10);
   const [editBio, setEditBio] = useState(user.bio || '');
   const [isReady, setIsReady] = useState(!user.isBusy);
 
+  const selectedTask = tasks.find(t => t.id === selectedTaskId) || null;
   const availableTasks = tasks.filter(t => t.status === TaskStatus.PENDING);
   const myActiveTasks = tasks.filter(t => t.writerId === user.id);
 
-  // Grouped tasks for the "Work" section
   const inProgressTasks = myActiveTasks.filter(t => t.status === TaskStatus.IN_PROGRESS || t.status === TaskStatus.REQUESTED);
   const reviewTasks = myActiveTasks.filter(t => t.status === TaskStatus.REVIEW);
   const completedTasks = myActiveTasks.filter(t => t.status === TaskStatus.COMPLETED);
 
-  const handleHandshake = (taskId: string, action: 'request' | 'accept') => {
-    onUpdateTasks(tasks.map(t => {
-      if (t.id === taskId) {
-        if (action === 'request') return { ...t, writerId: user.id, handshakeStatus: 'writer_requested', status: TaskStatus.REQUESTED };
-        if (action === 'accept') return { ...t, writerId: user.id, handshakeStatus: 'accepted', status: TaskStatus.IN_PROGRESS };
-      }
-      return t;
-    }));
-    setSelectedTask(null);
+  const handleHandshake = async (taskId: string, action: 'request' | 'accept') => {
+    if (action === 'request') {
+      await onFirestoreUpdate(taskId, { 
+        writerId: user.id, 
+        handshakeStatus: 'writer_requested', 
+        status: TaskStatus.REQUESTED 
+      });
+    } else if (action === 'accept') {
+      await onFirestoreUpdate(taskId, { 
+        handshakeStatus: 'accepted', 
+        status: TaskStatus.IN_PROGRESS 
+      });
+    }
+    setSelectedTaskId(null);
   };
 
-  const updateTaskStatus = (taskId: string, newStatus: TaskStatus) => {
-    onUpdateTasks(tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
-    const updated = tasks.find(t => t.id === taskId);
-    if(updated) setSelectedTask({ ...updated, status: newStatus });
+  const updateTaskStatus = async (taskId: string, newStatus: TaskStatus) => {
+    await onFirestoreUpdate(taskId, { status: newStatus });
   };
 
   const saveProfile = () => {
     onUpdateUser({ ...user, pricePerPage: editPrice, bio: editBio, isBusy: !isReady });
-    alert("Price and profile synced successfully!");
-  };
-
-  const handleRatingSubmit = (rating: number, review: string) => {
-    if (!ratingTask) return;
-    onUpdateTasks(tasks.map(t => 
-      t.id === ratingTask.id 
-        ? { ...t, ratingFromWriter: rating, reviewFromWriter: review } 
-        : t
-    ));
-    setRatingTask(null);
-    alert("Assigner rated successfully! Your feedback builds a safer community.");
-  };
-
-  const downloadFile = (data: string, name: string) => {
-    const link = document.createElement('a');
-    link.href = data;
-    link.download = name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    alert("Profile updated successfully!");
   };
 
   return (
@@ -86,10 +74,6 @@ const WriterPortal: React.FC<WriterPortalProps> = ({ user, tasks, onUpdateTasks,
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex flex-col items-end px-3 py-1 bg-slate-50 rounded-xl border border-slate-100">
-             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Earnings</p>
-             <p className="text-sm font-black text-indigo-600 leading-none">₹{user.earnings?.toLocaleString() || '0.00'}</p>
-          </div>
           <button onClick={() => setActiveTab('profile')} className="w-10 h-10 rounded-2xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm hover:ring-2 hover:ring-indigo-100 transition-all">
             <img src={user.avatar} className="w-full h-full object-cover" alt="Profile" />
           </button>
@@ -121,7 +105,7 @@ const WriterPortal: React.FC<WriterPortalProps> = ({ user, tasks, onUpdateTasks,
           {selectedTask ? (
             <div className="grid grid-cols-1 gap-8 animate-in slide-in-from-right-8 duration-300">
                <div className="space-y-6">
-                  <button onClick={() => setSelectedTask(null)} className="px-4 py-2 bg-white rounded-xl text-[10px] font-black uppercase text-slate-400 tracking-widest hover:text-indigo-600 flex items-center gap-2 border border-slate-100 shadow-sm transition-all active:scale-95"><i className="fas fa-arrow-left"></i> Back to Workflow</button>
+                  <button onClick={() => setSelectedTaskId(null)} className="px-4 py-2 bg-white rounded-xl text-[10px] font-black uppercase text-slate-400 tracking-widest hover:text-indigo-600 flex items-center gap-2 border border-slate-100 shadow-sm transition-all active:scale-95"><i className="fas fa-arrow-left"></i> Back to Workflow</button>
                   <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-8 opacity-5"><i className="fas fa-file-contract text-9xl"></i></div>
                     <h2 className="text-3xl font-black text-slate-800 mb-2 tracking-tight">{selectedTask.title}</h2>
@@ -143,23 +127,19 @@ const WriterPortal: React.FC<WriterPortalProps> = ({ user, tasks, onUpdateTasks,
                           <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">Source Materials ({selectedTask.attachments.length})</p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                              {selectedTask.attachments.map((file, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl hover:border-indigo-300 transition-all shadow-sm group">
+                                <a key={idx} href={file.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl hover:border-indigo-300 transition-all shadow-sm group">
                                    <div className="flex items-center gap-3">
                                       <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
                                          <i className={`fas ${file.type.includes('image') ? 'fa-image' : 'fa-file-pdf'} text-lg`}></i>
                                       </div>
                                       <div className="min-w-0">
                                          <p className="text-[11px] font-black text-slate-800 truncate pr-2">{file.name}</p>
-                                         <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{(file.size / 1024).toFixed(1)} KB</p>
                                       </div>
                                    </div>
-                                   <button 
-                                      onClick={() => downloadFile(file.data, file.name)}
-                                      className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                   >
-                                      <i className="fas fa-download"></i>
-                                   </button>
-                                </div>
+                                   <div className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                                      <i className="fas fa-external-link-alt"></i>
+                                   </div>
+                                </a>
                              ))}
                           </div>
                        </div>
@@ -174,9 +154,6 @@ const WriterPortal: React.FC<WriterPortalProps> = ({ user, tasks, onUpdateTasks,
                           <button onClick={() => updateTaskStatus(selectedTask.id, TaskStatus.REVIEW)} className="flex-1 py-5 bg-white text-indigo-600 border-2 border-indigo-100 rounded-[2rem] font-black uppercase text-[10px] tracking-widest hover:bg-indigo-50 active:scale-95 transition-all">Send Draft for Review</button>
                           <button onClick={() => updateTaskStatus(selectedTask.id, TaskStatus.COMPLETED)} className="flex-1 py-5 bg-emerald-500 text-white rounded-[2rem] font-black uppercase text-[10px] tracking-widest hover:bg-emerald-600 shadow-lg shadow-emerald-100 active:scale-95 transition-all">Final Submission</button>
                         </>
-                      )}
-                      {selectedTask.status === TaskStatus.COMPLETED && !selectedTask.ratingFromWriter && (
-                         <button onClick={() => setRatingTask(selectedTask)} className="flex-1 py-5 bg-yellow-400 text-white rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-xl shadow-yellow-100 active:scale-95 transition-all">Rate Assigner Experience</button>
                       )}
                       {selectedTask.handshakeStatus === 'accepted' && (
                         <button onClick={() => setActiveTab('messages')} className="flex-1 py-5 bg-slate-100 text-slate-600 rounded-[2rem] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">Open Chat</button>
@@ -206,7 +183,7 @@ const WriterPortal: React.FC<WriterPortalProps> = ({ user, tasks, onUpdateTasks,
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {availableTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => setSelectedTask(t)} role="writer" />)}
+                      {availableTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => setSelectedTaskId(t.id)} role="writer" />)}
                     </div>
                   )}
                 </div>
@@ -229,7 +206,7 @@ const WriterPortal: React.FC<WriterPortalProps> = ({ user, tasks, onUpdateTasks,
                         <div className="space-y-4">
                           <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] ml-2">Currently Working On</h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {inProgressTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => setSelectedTask(t)} role="writer" />)}
+                            {inProgressTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => setSelectedTaskId(t.id)} role="writer" />)}
                           </div>
                         </div>
                       )}
@@ -238,7 +215,7 @@ const WriterPortal: React.FC<WriterPortalProps> = ({ user, tasks, onUpdateTasks,
                         <div className="space-y-4">
                           <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] ml-2">Waiting for Review</h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-90">
-                            {reviewTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => setSelectedTask(t)} role="writer" />)}
+                            {reviewTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => setSelectedTaskId(t.id)} role="writer" />)}
                           </div>
                         </div>
                       )}
@@ -247,7 +224,7 @@ const WriterPortal: React.FC<WriterPortalProps> = ({ user, tasks, onUpdateTasks,
                         <div className="space-y-4">
                           <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Recently Completed</h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-75 grayscale-[0.5]">
-                            {completedTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => setSelectedTask(t)} role="writer" />)}
+                            {completedTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => setSelectedTaskId(t.id)} role="writer" />)}
                           </div>
                         </div>
                       )}
@@ -256,7 +233,7 @@ const WriterPortal: React.FC<WriterPortalProps> = ({ user, tasks, onUpdateTasks,
                 </div>
               )}
 
-              {activeTab === 'messages' && <MessagesHub tasks={tasks} user={user} onUpdateTasks={onUpdateTasks} />}
+              {activeTab === 'messages' && <MessagesHub tasks={tasks} user={user} onFirestoreUpdate={onFirestoreUpdate} />}
               
               {activeTab === 'profile' && (
                 <div className="max-w-2xl mx-auto bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100 animate-in zoom-in-95 duration-200">
@@ -313,15 +290,6 @@ const WriterPortal: React.FC<WriterPortalProps> = ({ user, tasks, onUpdateTasks,
           <i className="fas fa-user-cog text-lg"></i><span className="text-[9px] font-black uppercase tracking-tighter">Me</span>
         </button>
       </nav>
-
-      {ratingTask && (
-        <RatingModal 
-          task={ratingTask} 
-          role="writer" 
-          onClose={() => setRatingTask(null)} 
-          onSubmit={handleRatingSubmit} 
-        />
-      )}
     </div>
   );
 };

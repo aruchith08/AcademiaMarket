@@ -1,71 +1,68 @@
 
 import React, { useState } from 'react';
 import { Task, UserProfile, TaskStatus } from '../types.ts';
-import { MOCK_USERS } from '../constants.ts';
 import TaskCard from './TaskCard.tsx';
 import Dashboard from './Dashboard.tsx';
 import TaskForm from './TaskForm.tsx';
 import WritersList from './WritersList.tsx';
 import MessagesHub from './MessagesHub.tsx';
-import RatingModal from './RatingModal.tsx';
 
 interface AssignerPortalProps {
   user: UserProfile;
   tasks: Task[];
-  onUpdateTasks: (tasks: Task[]) => void;
+  allUsers: UserProfile[];
   onUpdateUser: (user: UserProfile) => void;
   onLogout: () => void;
+  onFirestoreUpdate: (taskId: string, updates: Partial<Task>) => Promise<void>;
+  onFirestoreCreate: (task: Partial<Task>) => Promise<void>;
 }
 
-const AssignerPortal: React.FC<AssignerPortalProps> = ({ user, tasks, onUpdateTasks, onLogout }) => {
+const AssignerPortal: React.FC<AssignerPortalProps> = ({ 
+  user, 
+  tasks, 
+  allUsers,
+  onLogout, 
+  onFirestoreUpdate, 
+  onFirestoreCreate 
+}) => {
   const [activeTab, setActiveTab] = useState<'home' | 'tasks' | 'writers' | 'messages' | 'profile'>('home');
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
-  const [ratingTask, setRatingTask] = useState<Task | null>(null);
 
   const myTasks = tasks.filter(t => t.assignerId === user.id);
+  const selectedTask = tasks.find(t => t.id === selectedTaskId) || null;
 
-  const handlePostTask = (newTask: Partial<Task>) => {
-    const task: Task = {
-      ...newTask as Task,
-      id: `t${Date.now()}`,
+  const handlePostTask = async (newTask: Partial<Task>) => {
+    const taskData = {
+      ...newTask,
       assignerId: user.id,
       status: TaskStatus.PENDING,
       handshakeStatus: 'none',
       bargainEnabled: true,
-      createdAt: new Date().toISOString(),
-      format: (newTask as any).format || 'Digital'
+      format: (newTask as any).format || 'Handwritten'
     };
-    onUpdateTasks([task, ...tasks]);
+    await onFirestoreCreate(taskData);
     setShowTaskForm(false);
     setActiveTab('tasks');
   };
 
-  const handleUpdateStatus = (taskId: string, newStatus: TaskStatus) => {
-    onUpdateTasks(tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
-    const updated = tasks.find(t => t.id === taskId);
-    if (updated) setSelectedTask({ ...updated, status: newStatus });
+  const handleUpdateStatus = async (taskId: string, newStatus: TaskStatus) => {
+    await onFirestoreUpdate(taskId, { status: newStatus });
   };
 
-  const handleHandshake = (taskId: string, writerId: string, action: 'ask' | 'accept') => {
-    onUpdateTasks(tasks.map(t => {
-      if (t.id === taskId) {
-        if (action === 'ask') return { ...t, writerId, handshakeStatus: 'assigner_invited', status: TaskStatus.REQUESTED };
-        if (action === 'accept') return { ...t, writerId, handshakeStatus: 'accepted', status: TaskStatus.IN_PROGRESS };
-      }
-      return t;
-    }));
-  };
-
-  const handleRatingSubmit = (rating: number, review: string) => {
-    if (!ratingTask) return;
-    onUpdateTasks(tasks.map(t => 
-      t.id === ratingTask.id 
-        ? { ...t, ratingFromAssigner: rating, reviewFromAssigner: review } 
-        : t
-    ));
-    setRatingTask(null);
-    alert("Thank you! Your feedback helps the community grow.");
+  const handleHandshake = async (taskId: string, writerId: string, action: 'ask' | 'accept') => {
+    if (action === 'ask') {
+      await onFirestoreUpdate(taskId, { 
+        writerId, 
+        handshakeStatus: 'assigner_invited', 
+        status: TaskStatus.REQUESTED 
+      });
+    } else if (action === 'accept') {
+      await onFirestoreUpdate(taskId, { 
+        handshakeStatus: 'accepted', 
+        status: TaskStatus.IN_PROGRESS 
+      });
+    }
   };
 
   return (
@@ -108,7 +105,7 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({ user, tasks, onUpdateTa
           {selectedTask ? (
             <div className="grid grid-cols-1 gap-8 animate-in slide-in-from-right-4 duration-300">
                <div className="space-y-6">
-                  <button onClick={() => setSelectedTask(null)} className="px-4 py-2 bg-white rounded-xl text-[10px] font-black uppercase text-slate-400 tracking-widest hover:text-indigo-600 flex items-center gap-2 border border-slate-100 shadow-sm transition-all active:scale-95"><i className="fas fa-arrow-left"></i> Back to Dashboard</button>
+                  <button onClick={() => setSelectedTaskId(null)} className="px-4 py-2 bg-white rounded-xl text-[10px] font-black uppercase text-slate-400 tracking-widest hover:text-indigo-600 flex items-center gap-2 border border-slate-100 shadow-sm transition-all active:scale-95"><i className="fas fa-arrow-left"></i> Back to Dashboard</button>
                   <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100">
                     <h2 className="text-3xl font-black text-slate-800 leading-tight mb-4 tracking-tight">{selectedTask.title}</h2>
                     <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-8 font-medium text-slate-600 text-sm leading-relaxed">
@@ -121,9 +118,6 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({ user, tasks, onUpdateTa
                       {selectedTask.status === TaskStatus.REVIEW && (
                          <button onClick={() => handleUpdateStatus(selectedTask.id, TaskStatus.COMPLETED)} className="flex-1 py-5 bg-indigo-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100">Confirm Work & Mark Completed</button>
                       )}
-                      {selectedTask.status === TaskStatus.COMPLETED && !selectedTask.ratingFromAssigner && (
-                         <button onClick={() => setRatingTask(selectedTask)} className="flex-1 py-5 bg-yellow-400 text-white rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-xl shadow-yellow-100 active:scale-95 transition-all">Rate Writer Experience</button>
-                      )}
                       {selectedTask.handshakeStatus === 'accepted' && (
                         <button onClick={() => setActiveTab('messages')} className="flex-1 py-5 bg-slate-100 text-slate-600 rounded-[2rem] font-black text-xs uppercase tracking-widest">Open Secure Chat</button>
                       )}
@@ -134,7 +128,7 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({ user, tasks, onUpdateTa
           ) : (
             <>
               {activeTab === 'home' && <Dashboard role="assigner" tasks={myTasks} />}
-              {activeTab === 'writers' && <WritersList users={MOCK_USERS} assignerTasks={myTasks} onAsk={(w, tId) => handleHandshake(tId, w.id, 'ask')} />}
+              {activeTab === 'writers' && <WritersList users={allUsers} assignerTasks={myTasks} onAsk={(w, tId) => handleHandshake(tId, w.id, 'ask')} />}
               {activeTab === 'tasks' && (
                 <div className="space-y-8 animate-in fade-in duration-500">
                   <div className="flex items-center justify-between">
@@ -152,23 +146,6 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({ user, tasks, onUpdateTa
                        <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-3">Your desk is clean!</h3>
                        <p className="text-slate-400 text-sm font-medium max-w-sm mx-auto leading-relaxed mb-10">You haven't posted any academic projects yet. Need help with records, assignments, or notes? Get started now.</p>
                        
-                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md mb-10">
-                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3 text-left">
-                             <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center text-xs"><i className="fas fa-check"></i></div>
-                             <div>
-                                <p className="text-[10px] font-black text-slate-800 uppercase tracking-tighter">Direct Connect</p>
-                                <p className="text-[9px] text-slate-400 font-bold">Chat with writers directly</p>
-                             </div>
-                          </div>
-                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3 text-left">
-                             <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-xs"><i className="fas fa-users"></i></div>
-                             <div>
-                                <p className="text-[10px] font-black text-slate-800 uppercase tracking-tighter">Verified Writers</p>
-                                <p className="text-[9px] text-slate-400 font-bold">45+ Active Today</p>
-                             </div>
-                          </div>
-                       </div>
-
                        <button 
                          onClick={() => setShowTaskForm(true)} 
                          className="px-12 py-5 bg-indigo-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-100 hover:scale-[1.02] active:scale-95 transition-all"
@@ -178,33 +155,28 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({ user, tasks, onUpdateTa
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {myTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => setSelectedTask(t)} role="assigner" />)}
+                      {myTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => setSelectedTaskId(t.id)} role="assigner" />)}
                     </div>
                   )}
                 </div>
               )}
-              {activeTab === 'messages' && <MessagesHub tasks={tasks} user={user} onUpdateTasks={onUpdateTasks} />}
+              {activeTab === 'messages' && <MessagesHub tasks={tasks} user={user} onFirestoreUpdate={onFirestoreUpdate} />}
               {activeTab === 'profile' && (
                 <div className="max-w-2xl mx-auto bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100 animate-in zoom-in-95 duration-200">
                    <div className="flex flex-col items-center text-center gap-6">
                       <img src={user.avatar} className="w-32 h-32 rounded-[2.5rem] object-cover ring-4 ring-slate-50 shadow-md" />
                       <div>
                         <h2 className="text-3xl font-black text-slate-800 tracking-tight">{user.name}</h2>
-                        <p className="text-indigo-600 font-bold uppercase text-[10px] tracking-widest mt-1">Premium Assigner Account</p>
+                        <p className="text-indigo-600 font-bold uppercase text-[10px] tracking-widest mt-1">Student Assigner</p>
                       </div>
-                      <div className="w-full grid grid-cols-2 gap-4 mt-4">
+                      <div className="w-full grid grid-cols-1 gap-4 mt-4">
                          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Projects Posted</p>
                             <p className="text-2xl font-black text-slate-800">{myTasks.length}</p>
                          </div>
-                         <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Market Trust</p>
-                            <p className="text-2xl font-black text-emerald-600">4.8 ★</p>
-                         </div>
                       </div>
                       <div className="w-full space-y-3 pt-6">
-                         <button className="w-full py-5 bg-slate-50 text-slate-600 rounded-[2rem] font-black uppercase text-[10px] tracking-widest border border-slate-100 hover:bg-slate-100 transition-all">Edit Account Details</button>
-                         <button onClick={onLogout} className="w-full py-5 bg-rose-50 text-rose-500 rounded-[2rem] font-black uppercase text-[10px] tracking-widest hover:bg-rose-100 transition-all active:scale-95">Sign Out Session</button>
+                         <button onClick={onLogout} className="w-full py-5 bg-rose-50 text-rose-500 rounded-[2rem] font-black uppercase text-[10px] tracking-widest hover:bg-rose-100 transition-all active:scale-95">Sign Out</button>
                       </div>
                    </div>
                 </div>
@@ -239,14 +211,6 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({ user, tasks, onUpdateTa
       </nav>
 
       {showTaskForm && <TaskForm onClose={() => setShowTaskForm(false)} onSubmit={handlePostTask} />}
-      {ratingTask && (
-        <RatingModal 
-          task={ratingTask} 
-          role="assigner" 
-          onClose={() => setRatingTask(null)} 
-          onSubmit={handleRatingSubmit} 
-        />
-      )}
     </div>
   );
 };

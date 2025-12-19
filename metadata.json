@@ -1,6 +1,6 @@
 {
   "name": "AcademiaMarket - Student Task Hub",
-  "description": "A comprehensive marketplace connecting students with academic writers for tasks like assignments, records, and note preparation, featuring AI cost estimation, integrated chat, and mutual rating systems.",
+  "description": "A comprehensive marketplace connecting students with academic writers for tasks like assignments, records, and note preparation, featuring cost estimation, integrated chat, and mutual rating systems.",
   "requestFramePermissions": [
     "camera"
   ]

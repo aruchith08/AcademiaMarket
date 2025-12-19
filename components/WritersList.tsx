@@ -16,48 +16,55 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, onAsk }
     <div className="space-y-6">
       <h2 className="text-3xl font-black text-slate-800 tracking-tight">Student Writers</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {writers.map(writer => (
-          <div key={writer.id} className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all group">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <img src={writer.avatar} className="w-16 h-16 rounded-2xl object-cover" />
-                  <div className={`absolute -bottom-1 -right-1 w-5 h-5 border-4 border-white rounded-full ${writer.isBusy ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
+      {writers.length === 0 ? (
+        <div className="py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center justify-center text-center p-8">
+           <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mb-6 text-slate-200 border border-slate-100 shadow-sm">
+              <i className="fas fa-users-slash text-4xl"></i>
+           </div>
+           <p className="text-slate-800 font-black text-xl tracking-tight mb-2">No writers found yet</p>
+           <p className="text-slate-400 text-xs font-medium max-w-[250px] leading-relaxed">As more students join as writers, they will appear here ready to help.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {writers.map(writer => (
+            <div key={writer.id} className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all group">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <img src={writer.avatar} className="w-16 h-16 rounded-2xl object-cover" />
+                    <div className={`absolute -bottom-1 -right-1 w-5 h-5 border-4 border-white rounded-full ${writer.isBusy ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
+                  </div>
+                  <div>
+                    <h4 className="font-black text-slate-800 text-sm">@{writer.username}</h4>
+                    <p className={`text-[9px] font-black uppercase tracking-tighter ${writer.isBusy ? 'text-amber-500' : 'text-emerald-500'}`}>
+                      {writer.isBusy ? 'Currently busy' : 'Ready to help'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-black text-slate-800">@{writer.username}</h4>
-                  <p className={`text-[9px] font-black uppercase tracking-tighter ${writer.isBusy ? 'text-amber-500' : 'text-emerald-500'}`}>
-                    {writer.isBusy ? 'Currently busy' : 'Ready to help'}
-                  </p>
+                <div className="text-right">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Rate</p>
+                  <p className="text-lg font-black text-indigo-600 leading-none">₹{writer.pricePerPage}<span className="text-[10px] text-slate-400 font-bold tracking-normal">/pg</span></p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Rate</p>
-                <p className="text-lg font-black text-indigo-600 leading-none">₹{writer.pricePerPage}<span className="text-[10px] text-slate-400 font-bold tracking-normal">/pg</span></p>
+
+              <div className="mb-6">
+                 <p className="text-[10px] text-slate-500 font-medium leading-relaxed line-clamp-2">
+                    {writer.bio}
+                 </p>
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t">
+                <button 
+                  onClick={() => setSelectedWriter(writer)}
+                  className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all transform active:scale-95"
+                >
+                  Ask for Help
+                </button>
               </div>
             </div>
-
-            <div className="mb-6 h-12 overflow-hidden">
-               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Past Work Samples</p>
-               <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
-                  {writer.pastWork?.map(work => (
-                    <span key={work} className="shrink-0 px-2 py-1 bg-slate-50 border border-slate-100 text-[9px] font-bold text-slate-500 rounded-lg">{work}</span>
-                  ))}
-               </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t">
-              <button 
-                onClick={() => setSelectedWriter(writer)}
-                className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all transform active:scale-95"
-              >
-                Ask for Help
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {selectedWriter && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
@@ -68,7 +75,7 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, onAsk }
               <div className="space-y-3 max-h-60 overflow-y-auto mb-8 pr-2">
                 {assignerTasks.filter(t => t.status === 'Pending').length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">You have no active tasks</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">You have no pending projects</p>
                   </div>
                 ) : (
                   assignerTasks.filter(t => t.status === 'Pending').map(t => (

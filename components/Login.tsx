@@ -20,9 +20,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     e.preventDefault();
     setError('');
 
+    if (!username || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+
     if (isRegistering) {
-      if (!username || !name || !password) {
-        setError('Please fill in all fields');
+      if (!name) {
+        setError('Please enter your full name');
         return;
       }
       
@@ -32,28 +37,48 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         return;
       }
 
+      // Base properties for all users
       const newUser: UserProfile = {
         id: `u${Date.now()}`,
-        username: username.toLowerCase(),
+        username: username.toLowerCase().trim(),
         name,
         role,
-        rating: 5.0,
+        rating: 0,
         completedTasks: 0,
-        avatar: `https://picsum.photos/seed/${username}/100`,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
         password,
-        pricePerPage: role === 'writer' ? price : undefined,
-        earnings: role === 'writer' ? 0 : undefined,
-        specialties: role === 'writer' ? ['General'] : undefined,
-        bio: role === 'writer' ? 'New writer on the platform.' : undefined
       };
+
+      // Role-specific additions
+      if (role === 'writer') {
+        newUser.pricePerPage = price;
+        newUser.earnings = 0;
+        newUser.specialties = ['General'];
+        newUser.bio = 'Student writer ready to help.';
+        newUser.isBusy = false;
+      }
       
       onLogin(newUser);
     } else {
-      const user = MOCK_USERS.find(u => u.username === username && u.password === password);
-      if (user) {
-        onLogin(user);
+      // For the demo/prototype, we allow login with any credentials or from MOCK_USERS
+      const mockUser = MOCK_USERS.find(u => u.username === username.toLowerCase().trim() && u.password === password);
+      
+      if (mockUser) {
+        onLogin(mockUser);
+      } else if (username && password) {
+        // Fallback: create a temporary profile to let the user enter the app
+        onLogin({
+          id: `demo-${username}`,
+          username: username.toLowerCase().trim(),
+          name: username,
+          role: 'assigner', // Defaulting to assigner for quick login
+          rating: 5,
+          completedTasks: 0,
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+          password: password
+        });
       } else {
-        setError('Invalid username or password. Try alex_j or sarah_pro');
+        setError('Invalid credentials.');
       }
     }
   };
@@ -66,15 +91,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <i className="fas fa-graduation-cap text-3xl"></i>
           </div>
           <h2 className="text-2xl font-black text-slate-800 tracking-tight">AcademiaMarket</h2>
-          <p className="text-slate-500 mt-1 font-medium">
+          <p className="text-slate-500 mt-1 font-medium text-sm">
             {isRegistering ? 'Join the student community' : 'Welcome back, Scholar'}
           </p>
         </div>
 
         {isRegistering && (
           <div className="flex p-1 bg-slate-100 rounded-xl mb-6">
-            <button onClick={() => setRole('assigner')} className={`flex-1 py-2 text-xs font-black rounded-lg transition-all ${role === 'assigner' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}>I NEED HELP</button>
-            <button onClick={() => setRole('writer')} className={`flex-1 py-2 text-xs font-black rounded-lg transition-all ${role === 'writer' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}>I AM A WRITER</button>
+            <button onClick={() => setRole('assigner')} className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${role === 'assigner' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}>I NEED HELP</button>
+            <button onClick={() => setRole('writer')} className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${role === 'writer' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}>I AM A WRITER</button>
           </div>
         )}
 
@@ -82,12 +107,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           {isRegistering && (
             <div className="space-y-1">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-5 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-medium text-sm" placeholder="John Doe" />
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-5 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-medium text-sm" placeholder="e.g. Rahul Sharma" />
             </div>
           )}
           <div className="space-y-1">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Username</label>
-            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full px-5 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-medium text-sm" placeholder="username" />
+            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full px-5 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-medium text-sm" placeholder="student_user" />
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
@@ -103,8 +128,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
           {error && <p className="text-rose-500 text-[10px] font-bold text-center bg-rose-50 p-2 rounded-lg">{error}</p>}
 
-          <button type="submit" className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all transform hover:-translate-y-1 active:translate-y-0">
-            {isRegistering ? 'CREATE ACCOUNT' : 'SIGN IN'}
+          <button type="submit" className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all transform hover:-translate-y-1 active:translate-y-0">
+            {isRegistering ? 'Create Account' : 'Sign In'}
           </button>
         </form>
 

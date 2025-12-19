@@ -6,10 +6,10 @@ import Chat from './Chat.tsx';
 interface MessagesHubProps {
   tasks: Task[];
   user: UserProfile;
-  onUpdateTasks: (tasks: Task[]) => void;
+  onFirestoreUpdate: (taskId: string, updates: Partial<Task>) => Promise<void>;
 }
 
-const MessagesHub: React.FC<MessagesHubProps> = ({ tasks, user, onUpdateTasks }) => {
+const MessagesHub: React.FC<MessagesHubProps> = ({ tasks, user, onFirestoreUpdate }) => {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   
   const chatTasks = tasks.filter(t => t.handshakeStatus === 'accepted' && (t.assignerId === user.id || t.writerId === user.id));
@@ -47,7 +47,14 @@ const MessagesHub: React.FC<MessagesHubProps> = ({ tasks, user, onUpdateTasks })
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`text-xs font-black truncate ${activeChatId === task.id ? 'text-white' : 'text-slate-800'}`}>{task.title}</p>
-                <p className={`text-[9px] font-bold uppercase tracking-tight ${activeChatId === task.id ? 'text-indigo-100' : 'text-slate-400'}`}>{task.subject}</p>
+                <div className="flex items-center gap-2">
+                   <p className={`text-[9px] font-bold uppercase tracking-tight shrink-0 ${activeChatId === task.id ? 'text-indigo-100' : 'text-indigo-500'}`}>{task.subject}</p>
+                   {task.lastMessage && (
+                     <p className={`text-[9px] truncate italic ${activeChatId === task.id ? 'text-white/60' : 'text-slate-400'}`}>
+                       • {task.lastMessage}
+                     </p>
+                   )}
+                </div>
               </div>
             </button>
           ))}
@@ -59,18 +66,18 @@ const MessagesHub: React.FC<MessagesHubProps> = ({ tasks, user, onUpdateTasks })
         {selectedTask ? (
           <div className="w-full flex flex-col h-full animate-in zoom-in-95 duration-300">
              <div className="lg:hidden p-4 bg-white border-b flex items-center gap-4">
-               <button onClick={() => setActiveChatId(null)} className="p-2"><i className="fas fa-arrow-left"></i></button>
-               <h4 className="font-black text-slate-800 text-xs uppercase tracking-widest">{selectedTask.title}</h4>
+               <button onClick={() => setActiveChatId(null)} className="p-2 text-slate-400"><i className="fas fa-arrow-left"></i></button>
+               <h4 className="font-black text-slate-800 text-xs uppercase tracking-widest truncate">{selectedTask.title}</h4>
              </div>
              <Chat 
                task={selectedTask} 
                user={user} 
-               onUpdateTask={(t) => onUpdateTasks(tasks.map(old => old.id === t.id ? t : old))} 
+               onUpdateTask={(updates) => onFirestoreUpdate(selectedTask.id, updates)} 
              />
           </div>
         ) : (
           <div className="text-center">
-            <i className="fas fa-arrow-left text-slate-100 text-6xl mb-4"></i>
+            <i className="fas fa-comment-medical text-slate-100 text-6xl mb-4"></i>
             <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Select a project to start chatting</p>
           </div>
         )}

@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { calculateEstimation } from '../services/pricingUtils.ts';
 import { Task, TaskStatus, TaskAttachment } from '../types.ts';
+import { storage } from '../lib/firebase.ts';
+import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
 interface TaskFormProps {
   onClose: () => void;
@@ -16,7 +18,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
     pages: 1,
     basePricePerPage: 10,
     deadline: '',
-    format: 'Handwritten' as any, // Default to Handwritten
+    format: 'Handwritten' as any,
     bargainEnabled: true
   });
 
@@ -25,7 +27,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [est, setEst] = useState({ base: 0, urgency: 0, total: 10, details: '' });
-  const [showUrgencyInfo, setShowUrgencyInfo] = useState(false);
 
   useEffect(() => {
     if (formData.deadline) {
@@ -36,12 +37,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
         formData.basePricePerPage
       );
       setEst(result);
-    } else {
-      setEst({ 
-        ...est, 
-        base: formData.pages * formData.basePricePerPage,
-        total: (formData.pages * formData.basePricePerPage) + est.urgency 
-      });
     }
   }, [formData.pages, formData.format, formData.deadline, formData.basePricePerPage]);
 
@@ -54,25 +49,22 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`${file.name} is too large. Max 5MB.`);
-        continue;
+      try {
+        const storageRef = ref(storage, `tasks/attachments/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(snapshot.ref);
+        
+        newAttachments.push({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          url: url,
+          path: snapshot.ref.fullPath
+        });
+      } catch (err) {
+        console.error("Upload failed", err);
+        alert(`Failed to upload ${file.name}`);
       }
-
-      const reader = new FileReader();
-      const filePromise = new Promise<TaskAttachment>((resolve) => {
-        reader.onload = (event) => {
-          resolve({
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            data: event.target?.result as string
-          });
-        };
-      });
-      reader.readAsDataURL(file);
-      const attachment = await filePromise;
-      newAttachments.push(attachment);
     }
 
     setAttachments(newAttachments);
@@ -126,8 +118,8 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Requirements & Instructions</label>
-              <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none min-h-[100px] font-medium" placeholder="Explain the task clearly. For handwritten work, specify ink color or paper type if needed..." />
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Requirements</label>
+              <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none min-h-[100px] font-medium" placeholder="Explain the task clearly..." />
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -154,76 +146,51 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
             </div>
 
             <div className="space-y-3 pt-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Source Files (Optional)</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cloud Storage Files ({attachments.length})</label>
               <div className="flex flex-wrap gap-3">
                 {attachments.map((file, idx) => (
-                  <div key={idx} className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl group animate-in slide-in-from-left-2">
+                  <div key={idx} className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 py-2 rounded-xl group animate-in slide-in-from-left-2">
                     <i className={`fas ${file.type.includes('image') ? 'fa-image' : 'fa-file-pdf'} text-indigo-400`}></i>
                     <span className="text-[10px] font-bold text-slate-600 max-w-[120px] truncate">{file.name}</span>
-                    <button type="button" onClick={() => removeAttachment(idx)} className="text-slate-300 hover:text-rose-500 transition-colors">
+                    <button type="button" onClick={() => removeAttachment(idx)} className="text-rose-400 hover:text-rose-600 transition-colors">
                       <i className="fas fa-times-circle"></i>
                     </button>
                   </div>
                 ))}
                 <button 
                   type="button" 
+                  disabled={isUploading}
                   onClick={() => fileInputRef.current?.click()}
                   className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 hover:border-indigo-300 hover:text-indigo-500 transition-all active:scale-95"
                 >
                   <i className={`fas ${isUploading ? 'fa-spinner fa-spin' : 'fa-paperclip'}`}></i>
-                  <span className="text-[10px] font-black uppercase tracking-widest">{isUploading ? 'Uploading...' : 'Attach File'}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">{isUploading ? 'Uploading...' : 'Upload to Cloud'}</span>
                 </button>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                  className="hidden" 
-                  multiple 
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                />
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
               </div>
-              <p className="text-[9px] text-slate-400 italic">Upload the content for the writer to copy or use as reference.</p>
+              <p className="text-[9px] text-slate-400 italic">Files are stored securely on Firebase Cloud Storage.</p>
             </div>
           </div>
 
           <div className="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100 shadow-sm">
              <div className="flex justify-between items-center mb-4">
                 <h4 className="font-black text-indigo-900 text-[10px] uppercase tracking-widest">Pricing Estimation</h4>
-                <div className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">AI Estimated</div>
              </div>
              <div className="space-y-2">
                 <div className="flex justify-between text-xs">
-                   <span className="text-slate-500 font-bold uppercase tracking-tighter">Base Cost ({formData.pages} pgs):</span>
+                   <span className="text-slate-500 font-bold uppercase tracking-tighter">Base Cost:</span>
                    <span className="text-slate-700 font-black">₹{est.base}</span>
-                </div>
-                <div className="flex justify-between text-xs group relative">
-                   <div className="flex items-center gap-1 cursor-help" onClick={() => setShowUrgencyInfo(!showUrgencyInfo)}>
-                      <span className="text-slate-500 font-bold uppercase tracking-tighter">Urgency Adjustment:</span>
-                      <i className="fas fa-bolt text-amber-400 text-[10px]"></i>
-                   </div>
-                   <span className={`font-black ${est.urgency > 0 ? 'text-amber-600' : 'text-slate-400'}`}>+ ₹{est.urgency}</span>
-                   
-                   {showUrgencyInfo && (
-                     <div className="absolute left-0 bottom-full mb-2 w-64 p-4 bg-slate-800 text-white text-[10px] rounded-2xl shadow-2xl z-20 animate-in fade-in slide-in-from-bottom-2 border border-slate-700">
-                       <p className="font-black mb-2 uppercase tracking-widest text-amber-400 border-b border-white/10 pb-1">Urgency Pricing</p>
-                       <p className="leading-relaxed text-slate-300 font-medium text-[9px]">Flat urgency fee based on deadline proximity. 
-                       <br/>• Within 24h: <b className="text-white">₹100</b>
-                       <br/>• Within 72h: <b className="text-white">₹50</b></p>
-                       <button onClick={(e) => { e.stopPropagation(); setShowUrgencyInfo(false); }} className="mt-3 text-indigo-400 font-black uppercase tracking-widest bg-indigo-500/10 px-3 py-1 rounded-lg">Dismiss</button>
-                     </div>
-                   )}
                 </div>
                 <div className="flex justify-between items-center pt-4 mt-2 border-t border-indigo-200/50">
                    <span className="text-indigo-900 font-black uppercase tracking-widest text-[11px]">Total Estimated Price</span>
                    <span className="text-3xl font-black text-indigo-600">₹{est.total}</span>
                 </div>
-                <p className="text-[9px] text-indigo-400 font-medium mt-2 leading-tight">{est.details}</p>
              </div>
           </div>
 
           <div className="flex gap-4 pt-4 border-t sticky bottom-0 bg-white">
-            <button type="button" onClick={onClose} className="flex-1 py-4 font-black text-slate-400 text-[10px] tracking-widest uppercase hover:text-slate-600 transition-colors">Discard</button>
-            <button type="submit" className="flex-[2] py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs tracking-widest uppercase shadow-xl shadow-indigo-100 active:scale-95 transition-all">Post Project Now</button>
+            <button type="button" onClick={onClose} className="flex-1 py-4 font-black text-slate-400 text-[10px] tracking-widest uppercase">Discard</button>
+            <button type="submit" disabled={isUploading} className="flex-[2] py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs tracking-widest uppercase shadow-xl shadow-indigo-100 active:scale-95 transition-all disabled:opacity-50">Post Project Now</button>
           </div>
         </form>
       </div>

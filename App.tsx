@@ -12,9 +12,7 @@ import {
   updateDoc, 
   doc, 
   query, 
-  orderBy,
-  setDoc,
-  getDoc
+  orderBy
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const App: React.FC = () => {
@@ -72,24 +70,9 @@ const App: React.FC = () => {
     );
   }
 
-  const handleLogin = async (userData: UserProfile) => {
-    try {
-      const userRef = doc(db, 'users', userData.id);
-      const userSnap = await getDoc(userRef);
-      
-      if (!userSnap.exists()) {
-        // Register new user in Firestore, ensuring no undefined fields
-        await setDoc(userRef, sanitizeForFirestore(userData));
-      } else {
-        // Update existing user session from Firestore data
-        setUser({ ...userData, ...userSnap.data() });
-        return;
-      }
-      setUser(userData);
-    } catch (err) {
-      console.error("Auth sync error", err);
-      setUser(userData); // Fallback to local session
-    }
+  const handleLogin = (userData: UserProfile) => {
+    // Login component now handles verification and initial document creation
+    setUser(userData);
   };
 
   const handleCreateTask = async (task: Partial<Task>) => {

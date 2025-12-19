@@ -14,8 +14,8 @@ export interface TaskAttachment {
   name: string;
   type: string;
   size: number;
-  url: string; // URL from Firebase Storage
-  path?: string; // Reference path in storage
+  url: string; 
+  path?: string; 
 }
 
 export interface Task {
@@ -45,7 +45,7 @@ export interface Message {
   senderId: string;
   senderName: string;
   text: string;
-  timestamp: any; // Firestore Timestamp
+  timestamp: any; 
   type: 'text' | 'file' | 'system';
   fileUrl?: string;
 }
@@ -67,4 +67,13 @@ export interface UserProfile {
   collegeName?: string;
   pincode?: string;
   isBargainable?: boolean;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'message';
+  timestamp: number;
+  taskId?: string;
 }

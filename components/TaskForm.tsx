@@ -20,7 +20,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
     bargainEnabled: true
   });
 
-  const [showGuide, setShowGuide] = useState(false);
   const [est, setEst] = useState({ base: 0, urgency: 0, total: 10, details: '' });
 
   useEffect(() => {
@@ -64,44 +63,57 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* File Link Instructions Banner */}
+          <div className="bg-amber-50 border border-amber-100 p-5 rounded-2xl flex items-start gap-4">
+             <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
+                <i className="fas fa-link"></i>
+             </div>
+             <div>
+                <h4 className="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-1">How to attach files</h4>
+                <p className="text-[10px] text-amber-600 font-medium leading-relaxed">
+                   Direct uploads are coming soon. For now, please upload your project documents to <b>Google Drive, Dropbox, or OneDrive</b> and paste the "Anyone with link" sharing URLs into the description box below.
+                </p>
+             </div>
+          </div>
+
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
+              <div className="space-y-1 text-left">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Title</label>
-                <input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none font-medium" placeholder="e.g. Physics Record Completion" />
+                <input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none font-medium text-sm" placeholder="e.g. Physics Record Completion" />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 text-left">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Subject</label>
-                <input required value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none font-medium" placeholder="Physics / Chemistry" />
+                <input required value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none font-medium text-sm" placeholder="Physics / Chemistry" />
               </div>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 text-left">
               <div className="flex justify-between items-end mb-1 px-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description & Links</label>
-                <span className="text-[8px] font-black text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded uppercase">Paste Document Links Here</span>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description & Attachment Links</label>
+                <span className="text-[8px] font-black text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded uppercase">Include External Links Here</span>
               </div>
               <textarea 
                 required 
                 value={formData.description} 
                 onChange={e => setFormData({...formData, description: e.target.value})} 
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none min-h-[120px] font-medium text-sm leading-relaxed" 
-                placeholder="Explain the task clearly and paste your Google Drive/Dropbox links here..." 
+                placeholder="Describe your task requirements. Paste any Google Drive / Dropbox / Linktree URLs here so the writer can access your files..." 
               />
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Pages</label>
-                <input type="number" min="1" value={formData.pages} onChange={e => setFormData({...formData, pages: parseInt(e.target.value) || 1})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none font-bold" />
+                <input type="number" min="1" value={formData.pages} onChange={e => setFormData({...formData, pages: parseInt(e.target.value) || 1})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none font-bold text-sm" />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Rate (₹/pg)</label>
-                <input type="number" min="1" value={formData.basePricePerPage} onChange={e => setFormData({...formData, basePricePerPage: parseInt(e.target.value) || 0})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none font-black text-indigo-600" />
+                <input type="number" min="1" value={formData.basePricePerPage} onChange={e => setFormData({...formData, basePricePerPage: parseInt(e.target.value) || 0})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none font-black text-indigo-600 text-sm" />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Format</label>
-                <select value={formData.format} onChange={e => setFormData({...formData, format: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none bg-white font-bold text-slate-700">
+                <select value={formData.format} onChange={e => setFormData({...formData, format: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none bg-white font-bold text-slate-700 text-sm appearance-none">
                   <option value="Handwritten">Handwritten</option>
                   <option value="Digital">Digital</option>
                   <option value="Mixed">Mixed</option>
@@ -109,81 +121,26 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Deadline</label>
-                <input required type="date" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none font-medium" />
+                <input required type="date" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none font-medium text-sm" />
               </div>
             </div>
 
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Attachment Guide</label>
-                <button 
-                  type="button" 
-                  onClick={() => setShowGuide(!showGuide)}
-                  className="text-[9px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-all"
-                >
-                  {showGuide ? 'Hide Instructions' : 'How to Share Files?'}
-                </button>
-              </div>
-              
-              {!showGuide ? (
-                <div className="p-4 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center gap-4 cursor-pointer hover:border-indigo-200 hover:bg-indigo-50/30 transition-all" onClick={() => setShowGuide(true)}>
-                   <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-500 shadow-sm border border-slate-100">
-                      <i className="fas fa-link"></i>
-                   </div>
-                   <div className="text-left">
-                      <p className="text-[10px] font-black text-slate-700 uppercase tracking-tight">Direct Uploads Resuming Soon</p>
-                      <p className="text-[9px] text-slate-500 font-medium">Click to see how to paste Google Drive links instead.</p>
-                   </div>
-                </div>
-              ) : (
-                <div className="bg-indigo-50/50 p-6 rounded-[2rem] border border-indigo-100 animate-in slide-in-from-top-4 duration-300">
-                  <h4 className="text-[10px] font-black text-indigo-900 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <i className="fas fa-info-circle"></i> 4 Simple Steps to Share Files
-                  </h4>
-                  <div className="space-y-4">
-                    <div className="flex gap-4">
-                      <div className="w-6 h-6 rounded-full bg-white text-indigo-600 flex items-center justify-center text-[10px] font-black shadow-sm shrink-0">1</div>
-                      <div>
-                         <p className="text-xs font-black text-slate-800">Upload to Drive / Dropbox</p>
-                         <p className="text-[10px] text-slate-500 font-medium">Open your cloud storage and upload your PDFs or Images.</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="w-6 h-6 rounded-full bg-white text-indigo-600 flex items-center justify-center text-[10px] font-black shadow-sm shrink-0">2</div>
-                      <div>
-                         <p className="text-xs font-black text-slate-800">Enable Sharing</p>
-                         <p className="text-[10px] text-slate-500 font-medium">Right-click the file → <span className="text-indigo-600 font-bold">Share</span>. Change restricted to <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md font-bold text-[9px]">Anyone with the link</span>.</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="w-6 h-6 rounded-full bg-white text-indigo-600 flex items-center justify-center text-[10px] font-black shadow-sm shrink-0">3</div>
-                      <div>
-                         <p className="text-xs font-black text-slate-800">Copy the Link</p>
-                         <p className="text-[10px] text-slate-500 font-medium">Click the "Copy link" button in the share window.</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="w-6 h-6 rounded-full bg-white text-indigo-600 flex items-center justify-center text-[10px] font-black shadow-sm shrink-0">4</div>
-                      <div>
-                         <p className="text-xs font-black text-slate-800">Paste in Description</p>
-                         <p className="text-[10px] text-slate-500 font-medium">Come back here and paste the link into the <span className="text-indigo-600 font-bold">Requirements</span> field above.</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 pt-4 border-t border-indigo-100/50 flex items-center gap-4">
-                     <div className="flex -space-x-2">
-                        <div className="w-7 h-7 bg-white rounded-lg shadow-sm flex items-center justify-center border border-indigo-50"><i className="fab fa-google-drive text-blue-500 text-[10px]"></i></div>
-                        <div className="w-7 h-7 bg-white rounded-lg shadow-sm flex items-center justify-center border border-indigo-50"><i className="fab fa-dropbox text-blue-400 text-[10px]"></i></div>
-                     </div>
-                     <p className="text-[9px] text-indigo-400 font-bold italic">Supports Google Drive, Dropbox, & OneDrive</p>
-                  </div>
-                </div>
-              )}
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 text-left">
+               <div>
+                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Negotiation (Bargaining)</p>
+                  <p className="text-[8px] text-slate-400 font-medium">Allow writers to propose a different price if needed.</p>
+               </div>
+               <button 
+                 type="button" 
+                 onClick={() => setFormData({...formData, bargainEnabled: !formData.bargainEnabled})}
+                 className={`w-10 h-5 rounded-full p-0.5 transition-all ${formData.bargainEnabled ? 'bg-indigo-600' : 'bg-slate-300'}`}
+               >
+                 <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-all transform ${formData.bargainEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
+               </button>
             </div>
           </div>
 
-          <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
+          <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 text-left">
              <div className="flex justify-between items-center mb-4">
                 <h4 className="font-black text-slate-400 text-[10px] uppercase tracking-widest">Pricing Estimation</h4>
              </div>

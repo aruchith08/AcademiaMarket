@@ -12,26 +12,32 @@ interface WritersListProps {
 const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, currentUser, onAsk }) => {
   const [selectedWriter, setSelectedWriter] = useState<UserProfile | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'college' | 'nearby'>('all');
+  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   
   const writers = users.filter(u => u.role === 'writer');
   
   const filteredWriters = useMemo(() => {
-    if (filterType === 'all') return writers;
+    let result = writers;
+    
+    if (showAvailableOnly) {
+      result = result.filter(w => !w.isBusy);
+    }
+    
     if (filterType === 'college') {
-      return writers.filter(w => w.collegeName?.toLowerCase() === currentUser.collegeName?.toLowerCase());
+      result = result.filter(w => w.collegeName?.toLowerCase() === currentUser.collegeName?.toLowerCase());
+    } else if (filterType === 'nearby') {
+      result = result.filter(w => w.pincode === currentUser.pincode);
     }
-    if (filterType === 'nearby') {
-      return writers.filter(w => w.pincode === currentUser.pincode);
-    }
-    return writers;
-  }, [writers, filterType, currentUser]);
+    
+    return result;
+  }, [writers, filterType, currentUser, showAvailableOnly]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black text-slate-800 tracking-tight">Student Writers</h2>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Found {filteredWriters.length} active scholars</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 text-left">Found {filteredWriters.length} matching scholars</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
@@ -53,6 +59,14 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
            >
              Near Me
            </button>
+           <div className="w-[1px] h-6 bg-slate-100 mx-2 hidden sm:block"></div>
+           <button 
+             onClick={() => setShowAvailableOnly(!showAvailableOnly)}
+             className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${showAvailableOnly ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' : 'text-slate-400 hover:bg-slate-50'}`}
+           >
+             <i className={`fas ${showAvailableOnly ? 'fa-check-circle' : 'fa-circle-notch'}`}></i>
+             Available Only
+           </button>
         </div>
       </div>
 
@@ -63,9 +77,10 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
            </div>
            <p className="text-slate-800 font-black text-xl tracking-tight mb-2">No writers found here</p>
            <p className="text-slate-400 text-xs font-medium max-w-[250px] leading-relaxed">
-             {filterType === 'college' && `No writers from ${currentUser.collegeName} yet.`}
-             {filterType === 'nearby' && `No writers found in pincode area ${currentUser.pincode}.`}
-             {filterType === 'all' && "As more students join as writers, they will appear here ready to help."}
+             {showAvailableOnly && "No writers are currently active/available. Try disabling the 'Available Only' filter."}
+             {!showAvailableOnly && filterType === 'college' && `No writers from ${currentUser.collegeName} yet.`}
+             {!showAvailableOnly && filterType === 'nearby' && `No writers found in pincode area ${currentUser.pincode}.`}
+             {!showAvailableOnly && filterType === 'all' && "As more students join as writers, they will appear here ready to help."}
            </p>
         </div>
       ) : (
@@ -73,15 +88,25 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
           {filteredWriters.map(writer => {
             const isSameCollege = writer.collegeName?.toLowerCase() === currentUser.collegeName?.toLowerCase();
             const isNearby = writer.pincode === currentUser.pincode;
-            const isBargainable = writer.isBargainable !== false; // Default to true if undefined
+            const isBargainable = writer.isBargainable !== false;
+            const isWriterBusy = writer.isBusy === true;
             
             return (
-              <div key={writer.id} className={`bg-white rounded-[2rem] p-6 shadow-sm border transition-all group ${isNearby ? 'border-amber-200 ring-2 ring-amber-50' : isSameCollege ? 'border-indigo-200 ring-2 ring-indigo-50' : 'border-slate-100 hover:shadow-md'}`}>
+              <div key={writer.id} className={`bg-white rounded-[2rem] p-6 shadow-sm border transition-all group relative ${isWriterBusy ? 'opacity-70 grayscale-[0.5]' : ''} ${isNearby ? 'border-amber-200 ring-2 ring-amber-50' : isSameCollege ? 'border-indigo-200 ring-2 ring-indigo-50' : 'border-slate-100 hover:shadow-md'}`}>
+                
+                {isWriterBusy && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <span className="bg-amber-100 text-amber-700 text-[8px] font-black uppercase px-2 py-1 rounded-md border border-amber-200">
+                      BUSY
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 text-left">
                     <div className="relative">
-                      <img src={writer.avatar} className="w-16 h-16 rounded-2xl object-cover" />
-                      <div className={`absolute -bottom-1 -right-1 w-5 h-5 border-4 border-white rounded-full ${writer.isBusy ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
+                      <img src={writer.avatar} className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-sm" />
+                      <div className={`absolute -bottom-1 -right-1 w-5 h-5 border-4 border-white rounded-full ${isWriterBusy ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
                     </div>
                     <div>
                       <h4 className="font-black text-slate-800 text-sm">@{writer.username}</h4>
@@ -93,25 +118,27 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
                         )}
                         {isNearby && (
                           <span className="text-[7px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md uppercase tracking-tighter">
-                            <i className="fas fa-location-dot mr-1"></i> Nearby
+                            <i className="fas fa-location-dot mr-1 text-[6px]"></i> Nearby
                           </span>
                         )}
                         <span className={`text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter ${isBargainable ? 'text-emerald-600 bg-emerald-50' : 'text-slate-400 bg-slate-50'}`}>
-                           <i className={`fas ${isBargainable ? 'fa-handshake' : 'fa-lock'} mr-1`}></i>
+                           <i className={`fas ${isBargainable ? 'fa-handshake' : 'fa-lock'} mr-1 text-[6px]`}></i>
                            {isBargainable ? 'Bargainable' : 'Fixed Price'}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Rate</p>
-                    <p className="text-lg font-black text-indigo-600 leading-none">₹{writer.pricePerPage}<span className="text-[10px] text-slate-400 font-bold tracking-normal">/pg</span></p>
-                  </div>
+                  {!isWriterBusy && (
+                    <div className="text-right">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Rate</p>
+                      <p className="text-lg font-black text-indigo-600 leading-none">₹{writer.pricePerPage}<span className="text-[10px] text-slate-400 font-bold tracking-normal">/pg</span></p>
+                    </div>
+                  )}
                 </div>
 
-                <div className="mb-4 space-y-2">
+                <div className="mb-4 space-y-2 text-left">
                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      <i className="fas fa-university text-indigo-300 w-4"></i>
+                      <i className="fas fa-university text-indigo-300 w-4 text-center"></i>
                       <span className="truncate">{writer.collegeName || 'Unknown College'}</span>
                    </div>
                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -125,10 +152,11 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                   <button 
-                    onClick={() => setSelectedWriter(writer)}
-                    className={`w-full py-3 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg transition-all transform active:scale-95 ${isNearby ? 'bg-amber-500 text-white shadow-amber-100 hover:bg-amber-600' : 'bg-indigo-600 text-white shadow-indigo-100 hover:bg-indigo-700'}`}
+                    onClick={() => !isWriterBusy && setSelectedWriter(writer)}
+                    disabled={isWriterBusy}
+                    className={`w-full py-3 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg transition-all transform active:scale-95 ${isWriterBusy ? 'bg-slate-100 text-slate-400 shadow-none cursor-not-allowed' : isNearby ? 'bg-amber-500 text-white shadow-amber-100 hover:bg-amber-600' : 'bg-indigo-600 text-white shadow-indigo-100 hover:bg-indigo-700'}`}
                   >
-                    Ask for Help
+                    {isWriterBusy ? 'Writer Busy' : 'Ask for Help'}
                   </button>
                 </div>
               </div>
@@ -138,7 +166,7 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
       )}
 
       {selectedWriter && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 text-left">
            <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl animate-in zoom-in duration-200">
               <h3 className="text-xl font-black text-slate-800 mb-2">Connect with @{selectedWriter.username}</h3>
               <p className="text-xs text-slate-500 mb-6 font-medium">Select a task you'd like to collaborate on.</p>

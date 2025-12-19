@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { Task, UserProfile } from '../types.ts';
 import Chat from './Chat.tsx';
 
@@ -7,14 +7,23 @@ interface MessagesHubProps {
   tasks: Task[];
   user: UserProfile;
   onFirestoreUpdate: (taskId: string, updates: Partial<Task>) => Promise<void>;
+  initialChatId?: string | null;
+  onChatSelect?: (taskId: string | null) => void;
 }
 
-const MessagesHub: React.FC<MessagesHubProps> = ({ tasks, user, onFirestoreUpdate }) => {
-  const [activeChatId, setActiveChatId] = useState<string | null>(null);
-  
+const MessagesHub: React.FC<MessagesHubProps> = ({ 
+  tasks, 
+  user, 
+  onFirestoreUpdate, 
+  initialChatId,
+  onChatSelect
+}) => {
   const chatTasks = tasks.filter(t => t.handshakeStatus === 'accepted' && (t.assignerId === user.id || t.writerId === user.id));
-  const selectedTask = chatTasks.find(t => t.id === activeChatId);
+  const selectedTask = chatTasks.find(t => t.id === initialChatId);
 
+  // If we have an initialChatId but it's not in our list (maybe newly accepted), 
+  // we just show the selection list.
+  
   if (chatTasks.length === 0) {
     return (
       <div className="bg-white rounded-[3rem] p-12 text-center border border-slate-100 flex flex-col items-center justify-center min-h-[500px] animate-in fade-in duration-500">
@@ -30,7 +39,7 @@ const MessagesHub: React.FC<MessagesHubProps> = ({ tasks, user, onFirestoreUpdat
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-[70vh] lg:h-[75vh] animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Sidebar - Chat List */}
-      <div className={`w-full lg:w-80 shrink-0 bg-white rounded-[2.5rem] border border-slate-100 flex flex-col overflow-hidden shadow-sm ${activeChatId ? 'hidden lg:flex' : 'flex'}`}>
+      <div className={`w-full lg:w-80 shrink-0 bg-white rounded-[2.5rem] border border-slate-100 flex flex-col overflow-hidden shadow-sm ${initialChatId ? 'hidden lg:flex' : 'flex'}`}>
         <div className="p-6 border-b border-slate-50">
           <h3 className="text-lg font-black text-slate-800 tracking-tight">Messages</h3>
           <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">{chatTasks.length} Active Hubs</p>
@@ -39,18 +48,18 @@ const MessagesHub: React.FC<MessagesHubProps> = ({ tasks, user, onFirestoreUpdat
           {chatTasks.map(task => (
             <button 
               key={task.id}
-              onClick={() => setActiveChatId(task.id)}
-              className={`w-full p-4 rounded-2xl text-left transition-all flex items-center gap-4 ${activeChatId === task.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'hover:bg-slate-50'}`}
+              onClick={() => onChatSelect?.(task.id)}
+              className={`w-full p-4 rounded-2xl text-left transition-all flex items-center gap-4 ${initialChatId === task.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'hover:bg-slate-50'}`}
             >
-              <div className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center font-black text-[10px] ${activeChatId === task.id ? 'bg-white/20' : 'bg-slate-100 text-slate-400'}`}>
+              <div className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center font-black text-[10px] ${initialChatId === task.id ? 'bg-white/20' : 'bg-slate-100 text-slate-400'}`}>
                 {task.subject.charAt(0)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-xs font-black truncate ${activeChatId === task.id ? 'text-white' : 'text-slate-800'}`}>{task.title}</p>
+                <p className={`text-xs font-black truncate ${initialChatId === task.id ? 'text-white' : 'text-slate-800'}`}>{task.title}</p>
                 <div className="flex items-center gap-2">
-                   <p className={`text-[9px] font-bold uppercase tracking-tight shrink-0 ${activeChatId === task.id ? 'text-indigo-100' : 'text-indigo-500'}`}>{task.subject}</p>
+                   <p className={`text-[9px] font-bold uppercase tracking-tight shrink-0 ${initialChatId === task.id ? 'text-indigo-100' : 'text-indigo-500'}`}>{task.subject}</p>
                    {task.lastMessage && (
-                     <p className={`text-[9px] truncate italic ${activeChatId === task.id ? 'text-white/60' : 'text-slate-400'}`}>
+                     <p className={`text-[9px] truncate italic ${initialChatId === task.id ? 'text-white/60' : 'text-slate-400'}`}>
                        • {task.lastMessage}
                      </p>
                    )}
@@ -62,11 +71,11 @@ const MessagesHub: React.FC<MessagesHubProps> = ({ tasks, user, onFirestoreUpdat
       </div>
 
       {/* Main Chat Area */}
-      <div className={`flex-1 h-full ${activeChatId ? 'flex' : 'hidden lg:flex items-center justify-center bg-white rounded-[2.5rem] border border-dashed border-slate-200'}`}>
+      <div className={`flex-1 h-full ${initialChatId ? 'flex' : 'hidden lg:flex items-center justify-center bg-white rounded-[2.5rem] border border-dashed border-slate-200'}`}>
         {selectedTask ? (
           <div className="w-full flex flex-col h-full animate-in zoom-in-95 duration-300">
              <div className="lg:hidden p-4 bg-white border-b flex items-center gap-4">
-               <button onClick={() => setActiveChatId(null)} className="p-2 text-slate-400"><i className="fas fa-arrow-left"></i></button>
+               <button onClick={() => onChatSelect?.(null)} className="p-2 text-slate-400"><i className="fas fa-arrow-left"></i></button>
                <h4 className="font-black text-slate-800 text-xs uppercase tracking-widest truncate">{selectedTask.title}</h4>
              </div>
              <Chat 

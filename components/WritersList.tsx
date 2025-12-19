@@ -37,8 +37,8 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight">Student Writers</h2>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 text-left">Found {filteredWriters.length} matching scholars</p>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight">Available Helpers</h2>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 text-left">Found {filteredWriters.length} students ready to help</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
@@ -66,7 +66,7 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${showAvailableOnly ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' : 'text-slate-400 hover:bg-slate-50'}`}
            >
              <i className={`fas ${showAvailableOnly ? 'fa-check-circle' : 'fa-circle-notch'}`}></i>
-             Available Only
+             Available Now
            </button>
         </div>
       </div>
@@ -76,12 +76,12 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
            <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 border shadow-sm ${filterType === 'nearby' ? 'bg-amber-50 text-amber-200 border-amber-50' : 'bg-slate-50 text-slate-200 border-slate-100'}`}>
               <i className={`fas ${filterType === 'nearby' ? 'fa-location-dot' : 'fa-university'} text-4xl`}></i>
            </div>
-           <p className="text-slate-800 font-black text-xl tracking-tight mb-2">No writers found here</p>
+           <p className="text-slate-800 font-black text-xl tracking-tight mb-2">No helpers found here</p>
            <p className="text-slate-400 text-xs font-medium max-w-[250px] leading-relaxed">
-             {showAvailableOnly && "No writers are currently active/available. Try disabling the 'Available Only' filter."}
-             {!showAvailableOnly && filterType === 'college' && `No writers from ${currentUser.collegeName} yet.`}
-             {!showAvailableOnly && filterType === 'nearby' && `No writers found in pincode area ${currentUser.pincode}.`}
-             {!showAvailableOnly && filterType === 'all' && "As more students join as writers, they will appear here ready to help."}
+             {showAvailableOnly && "No one is currently active. Try disabling 'Available Now'."}
+             {!showAvailableOnly && filterType === 'college' && `No one from ${currentUser.collegeName} has signed up yet.`}
+             {!showAvailableOnly && filterType === 'nearby' && `No helpers found in area ${currentUser.pincode}.`}
+             {!showAvailableOnly && filterType === 'all' && "As more students join, they will appear here ready to support you."}
            </p>
         </div>
       ) : (
@@ -99,7 +99,7 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
                 {isWriterBusy && (
                   <div className="absolute top-4 right-4 z-10">
                     <span className="bg-amber-100 text-amber-700 text-[8px] font-black uppercase px-2 py-1 rounded-md border border-amber-200">
-                      BUSY
+                      STUDYING
                     </span>
                   </div>
                 )}
@@ -115,7 +115,7 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
                       <div className="flex flex-wrap gap-1 mt-1">
                         {isSameCollege && (
                           <span className="text-[7px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md uppercase tracking-tighter">
-                            College Match
+                            College Mate
                           </span>
                         )}
                         {isNearby && (
@@ -124,15 +124,15 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
                           </span>
                         )}
                         <span className={`text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter ${isBargainable ? 'text-emerald-600 bg-emerald-50' : 'text-slate-400 bg-slate-50'}`}>
-                           <i className={`fas ${isBargainable ? 'fa-handshake' : 'fa-lock'} mr-1 text-[6px]`}></i>
-                           {isBargainable ? 'Bargainable' : 'Fixed Price'}
+                           <i className={`fas ${isBargainable ? 'fa-comments' : 'fa-lock'} mr-1 text-[6px]`}></i>
+                           {isBargainable ? 'Open to Chat' : 'Fixed Contribution'}
                         </span>
                       </div>
                     </div>
                   </div>
                   {!isWriterBusy && (
                     <div className="text-right">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Rate</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Support</p>
                       <p className="text-lg font-black text-indigo-600 leading-none">₹{writer.pricePerPage}<span className="text-[10px] text-slate-400 font-bold tracking-normal">/pg</span></p>
                     </div>
                   )}
@@ -152,10 +152,9 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
                    </p>
                 </div>
 
-                {/* Portfolio Preview Panel */}
                 {isPortfolioExpanded && (
                   <div className="mb-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 animate-in slide-in-from-top-2 duration-300 text-left">
-                    <p className="text-[8px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-2">Work Samples Portfolio</p>
+                    <p className="text-[8px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-2">Previous Work Samples</p>
                     <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
                       {writer.portfolio && writer.portfolio.length > 0 ? (
                         writer.portfolio.map((item, idx) => (
@@ -171,7 +170,7 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
                           </a>
                         ))
                       ) : (
-                        <p className="text-[9px] text-slate-400 font-medium italic py-2 text-center">Writer hasn't added samples yet.</p>
+                        <p className="text-[9px] text-slate-400 font-medium italic py-2 text-center">No samples shared yet.</p>
                       )}
                     </div>
                   </div>
@@ -182,14 +181,14 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
                     onClick={() => setViewingPortfolioId(isPortfolioExpanded ? null : writer.id)}
                     className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${isPortfolioExpanded ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-slate-50 text-slate-400 border border-slate-100 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100'}`}
                   >
-                    {isPortfolioExpanded ? 'Hide Samples' : 'Work Samples'}
+                    {isPortfolioExpanded ? 'Hide' : 'Samples'}
                   </button>
                   <button 
                     onClick={() => !isWriterBusy && setSelectedWriter(writer)}
                     disabled={isWriterBusy}
                     className={`flex-[2] py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg transition-all transform active:scale-95 ${isWriterBusy ? 'bg-slate-100 text-slate-400 shadow-none cursor-not-allowed' : isNearby ? 'bg-amber-500 text-white shadow-amber-100 hover:bg-amber-600' : 'bg-indigo-600 text-white shadow-indigo-100 hover:bg-indigo-700'}`}
                   >
-                    {isWriterBusy ? 'Writer Busy' : 'Hire Writer'}
+                    {isWriterBusy ? 'Busy Studying' : 'Ask for Help'}
                   </button>
                 </div>
               </div>
@@ -202,13 +201,13 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 text-left">
            <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl animate-in zoom-in duration-200">
               <h3 className="text-xl font-black text-slate-800 mb-2">Connect with @{selectedWriter.username}</h3>
-              <p className="text-xs text-slate-500 mb-6 font-medium">Select a task you'd like to collaborate on.</p>
+              <p className="text-xs text-slate-500 mb-6 font-medium">Which task do you need a hand with?</p>
               
               <div className="space-y-3 max-h-60 overflow-y-auto mb-8 pr-2">
                 {assignerTasks.filter(t => t.status === 'Pending').length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">You have no pending projects</p>
-                    <p className="text-[8px] text-slate-400 mt-1">Post a project first to hire writers.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">You have no pending requests</p>
+                    <p className="text-[8px] text-slate-400 mt-1">Create a help request first.</p>
                   </div>
                 ) : (
                   assignerTasks.filter(t => t.status === 'Pending').map(t => (
@@ -224,7 +223,7 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
                 )}
               </div>
 
-              <button onClick={() => setSelectedWriter(null)} className="w-full py-3 font-black text-slate-400 text-xs tracking-widest uppercase">Cancel</button>
+              <button onClick={() => setSelectedWriter(null)} className="w-full py-3 font-black text-slate-400 text-xs tracking-widest uppercase">Go Back</button>
            </div>
         </div>
       )}

@@ -18,7 +18,6 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
   const [isBargainable, setIsBargainable] = useState(user.isBargainable !== false);
   const [isBusy, setIsBusy] = useState(user.isBusy || false);
   
-  // Portfolio management state
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>(user.portfolio || []);
   const [newSampleTitle, setNewSampleTitle] = useState('');
   const [newSampleUrl, setNewSampleUrl] = useState('');
@@ -33,7 +32,6 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
       return;
     }
     
-    // Robust URL validation
     try {
       new URL(newSampleUrl);
     } catch (_) {
@@ -44,7 +42,6 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
     setIsAdding(true);
     const updatedPortfolio = [...portfolio, { title: newSampleTitle, url: newSampleUrl }];
     
-    // Immediate persistence to database
     try {
       await onUpdateUser({ 
         ...user, 
@@ -54,12 +51,10 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
       setPortfolio(updatedPortfolio);
       setNewSampleTitle('');
       setNewSampleUrl('');
-      
-      // Visual feedback
       setShowAddedFeedback(true);
       setTimeout(() => setShowAddedFeedback(false), 2000);
     } catch (err) {
-      setLinkError('Failed to save to cloud. Try again.');
+      setLinkError('Failed to save. Try again.');
     } finally {
       setIsAdding(false);
     }
@@ -67,8 +62,6 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
 
   const removePortfolioItem = async (index: number) => {
     const updatedPortfolio = portfolio.filter((_, i) => i !== index);
-    
-    // Immediate persistence for removal
     try {
       await onUpdateUser({ 
         ...user, 
@@ -76,7 +69,7 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
       });
       setPortfolio(updatedPortfolio);
     } catch (err) {
-      alert("Failed to remove sample from database.");
+      alert("Failed to remove sample.");
     }
   };
 
@@ -93,9 +86,9 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
       pincode: editPincode,
       isBargainable: isBargainable,
       isBusy: isBusy,
-      portfolio: portfolio // include current portfolio state
+      portfolio: portfolio
     });
-    alert("Profile settings updated!");
+    alert("Helper profile updated!");
   };
 
   return (
@@ -108,8 +101,8 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
           </button>
         </div>
         <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tighter">Writer Settings</h2>
-          <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-1 text-left">Configure your identity</p>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tighter text-left">Helper Identity</h2>
+          <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-1 text-left">Manage your student profile</p>
         </div>
       </div>
       
@@ -118,10 +111,10 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-[10px] font-black uppercase tracking-widest ${isBusy ? 'text-amber-700' : 'text-emerald-700'}`}>
-                Work Status: {isBusy ? 'Currently Busy' : 'Available for Work'}
+                Study Status: {isBusy ? 'Busy Studying' : 'Ready to Help'}
               </p>
-              <p className={`text-[9px] font-medium ${isBusy ? 'text-amber-600' : 'text-emerald-600'}`}>
-                {isBusy ? "You won't appear in the active writers list." : "Assigners can find you and invite you to tasks."}
+              <p className={`text-[9px] font-medium text-left ${isBusy ? 'text-amber-600' : 'text-emerald-600'}`}>
+                {isBusy ? "You're taking a break from helping." : "Peers can reach out to you for support."}
               </p>
             </div>
             <button 
@@ -142,26 +135,25 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
             </select>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Home Pincode</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Area Pincode</label>
             <input type="text" maxLength={6} value={editPincode} onChange={(e) => setEditPincode(e.target.value.replace(/\D/g, ''))} className="w-full px-6 py-4 rounded-[2rem] bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none font-black text-slate-700 text-sm shadow-inner transition-all" />
           </div>
         </div>
 
         <div className="space-y-2 text-left">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Writing Rate (₹ / Page)</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Suggested Support (₹ / Page)</label>
           <input type="number" value={editPrice} onChange={(e) => setEditPrice(Number(e.target.value))} className="w-full px-8 py-4 rounded-[2rem] bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none font-black text-indigo-600 text-2xl shadow-inner transition-all" />
         </div>
 
-        {/* Portfolio Section */}
         <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 text-left">
           <div className="flex items-center justify-between mb-4">
-             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Work Samples (Portfolio)</h4>
-             <span className="text-[8px] font-black text-indigo-500 bg-white px-2 py-1 rounded-lg border border-slate-100 uppercase tracking-widest">Cloud Sync Active</span>
+             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Showcase Samples</h4>
+             <span className="text-[8px] font-black text-indigo-500 bg-white px-2 py-1 rounded-lg border border-slate-100 uppercase tracking-widest">Verified Samples</span>
           </div>
           
           <div className="space-y-3 mb-6">
             {portfolio.length === 0 ? (
-              <p className="text-[10px] text-slate-400 italic font-medium px-2">No samples added yet. Add links to your Google Drive work samples.</p>
+              <p className="text-[10px] text-slate-400 italic font-medium px-2">No samples shared yet.</p>
             ) : (
               portfolio.map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 shadow-sm animate-in slide-in-from-left-2 duration-300">
@@ -182,7 +174,7 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
               type="text" 
               value={newSampleTitle}
               onChange={(e) => setNewSampleTitle(e.target.value)}
-              placeholder="Sample Title (e.g. Maths Assignment)"
+              placeholder="Sample Title (e.g. Lab Record)"
               className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-xs font-medium"
             />
             <div className="flex flex-col gap-1.5">
@@ -194,7 +186,7 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
                     setNewSampleUrl(e.target.value);
                     if (linkError) setLinkError('');
                   }}
-                  placeholder="Paste G-Drive/Dropbox Link"
+                  placeholder="Paste G-Drive/Link"
                   className={`flex-1 px-4 py-3 rounded-xl border-2 outline-none text-xs font-medium transition-all ${
                     linkError ? 'border-rose-300 bg-rose-50' : 'border-slate-200 focus:border-indigo-500'
                   }`}
@@ -211,7 +203,7 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
                   {isAdding ? (
                     <i className="fas fa-spinner fa-spin"></i>
                   ) : showAddedFeedback ? (
-                    <><i className="fas fa-check mr-1"></i> Added!</>
+                    'Added!'
                   ) : (
                     'Add'
                   )}
@@ -228,8 +220,8 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
 
         <div className="flex items-center justify-between p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100 text-left">
           <div>
-            <p className="text-[10px] font-black text-indigo-900 uppercase tracking-widest">Open to Bargaining</p>
-            <p className="text-[9px] text-indigo-500 font-medium">Allows assigners to negotiate the price on a per-task basis.</p>
+            <p className="text-[10px] font-black text-indigo-900 uppercase tracking-widest">Open to Discuss</p>
+            <p className="text-[9px] text-indigo-500 font-medium">Allows peers to suggest a different amount if needed.</p>
           </div>
           <button 
             type="button" 
@@ -240,7 +232,7 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
           </button>
         </div>
 
-        <button onClick={saveProfile} className="w-full py-5 bg-indigo-600 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-2xl shadow-indigo-100 active:scale-95 transition-all">Update Profile</button>
+        <button onClick={saveProfile} className="w-full py-5 bg-indigo-600 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-2xl shadow-indigo-100 active:scale-95 transition-all">Update My Profile</button>
         <button onClick={onLogout} className="w-full py-5 bg-rose-50 text-rose-500 rounded-[2rem] font-black uppercase text-xs tracking-widest hover:bg-rose-100 transition-all active:scale-95">Sign Out</button>
       </div>
     </div>

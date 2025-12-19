@@ -29,26 +29,26 @@ const AssignerProjects: React.FC<AssignerProjectsProps> = ({ tasks, user, onSele
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">My Desk</h2>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tracking your academic needs</p>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight text-left">My Help List</h2>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Tracking your requests</p>
         </div>
         {tasks.length > 0 && (
-          <button onClick={onPostNew} className="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 hover:bg-indigo-100 transition-all">+ New Task</button>
+          <button onClick={onPostNew} className="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 hover:bg-indigo-100 transition-all">+ New Request</button>
         )}
       </div>
 
       {tasks.length === 0 ? (
         <div className="py-24 bg-white rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center justify-center text-center p-10">
-          <i className="fas fa-clipboard-list text-5xl text-slate-100 mb-6"></i>
-          <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-3">Your desk is clean!</h3>
-          <p className="text-slate-400 text-sm font-medium max-w-sm mx-auto leading-relaxed mb-10">You haven't posted any academic projects yet. Need help with records or assignments?</p>
-          <button onClick={onPostNew} className="px-12 py-5 bg-indigo-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-100 hover:scale-[1.02] active:scale-95 transition-all">Post Your First Project</button>
+          <i className="fas fa-hand-holding-heart text-5xl text-slate-100 mb-6"></i>
+          <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-3">No active requests</h3>
+          <p className="text-slate-400 text-sm font-medium max-w-sm mx-auto leading-relaxed mb-10">You haven't requested a hand with any tasks yet. Need help with records or notes?</p>
+          <button onClick={onPostNew} className="px-12 py-5 bg-indigo-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-100 hover:scale-[1.02] active:scale-95 transition-all">Ask for Help</button>
         </div>
       ) : (
         <div className="space-y-12">
           {pendingTasks.length > 0 && (
             <div>
-              <SectionHeader title="Open Market / Pending" count={pendingTasks.length} color="bg-amber-400" />
+              <SectionHeader title="Pending Offers" count={pendingTasks.length} color="bg-amber-400" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {pendingTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => onSelectTask(t.id)} role="assigner" collegeName={user.collegeName} />)}
               </div>
@@ -57,7 +57,7 @@ const AssignerProjects: React.FC<AssignerProjectsProps> = ({ tasks, user, onSele
 
           {activeTasks.length > 0 && (
             <div>
-              <SectionHeader title="In Progress & Review" count={activeTasks.length} color="bg-indigo-500" />
+              <SectionHeader title="Partnered & Review" count={activeTasks.length} color="bg-indigo-500" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {activeTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => onSelectTask(t.id)} role="assigner" collegeName={user.collegeName} />)}
               </div>
@@ -66,7 +66,7 @@ const AssignerProjects: React.FC<AssignerProjectsProps> = ({ tasks, user, onSele
 
           {completedTasks.length > 0 && (
             <div>
-              <SectionHeader title="Completed History" count={completedTasks.length} color="bg-emerald-500" />
+              <SectionHeader title="History" count={completedTasks.length} color="bg-emerald-500" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {completedTasks.map(t => <TaskCard key={t.id} task={t} onClick={() => onSelectTask(t.id)} role="assigner" collegeName={user.collegeName} />)}
               </div>

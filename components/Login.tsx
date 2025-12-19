@@ -52,12 +52,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
 
     try {
-      // 1. Attempt to Authenticate with Firebase (Anonymous)
       try {
         await signInAnonymously(auth);
       } catch (authErr: any) {
-        // Silently handle configuration errors to prevent "scary" logs
-        // This usually means the user hasn't clicked "Get Started" in Firebase Auth yet.
         console.log("Auth Status: Waiting for console activation. Proceeding to database login...");
       }
 
@@ -95,6 +92,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           password,
           collegeName: collegeName.trim(),
           pincode: pincode.trim(),
+          portfolio: [] // Explicitly initialize empty portfolio for new users
         };
 
         if (role === 'writer') {

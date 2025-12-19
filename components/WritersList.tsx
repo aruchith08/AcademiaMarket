@@ -13,6 +13,7 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
   const [selectedWriter, setSelectedWriter] = useState<UserProfile | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'college' | 'nearby'>('all');
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
+  const [viewingPortfolioId, setViewingPortfolioId] = useState<string | null>(null);
   
   const writers = users.filter(u => u.role === 'writer');
   
@@ -90,9 +91,10 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
             const isNearby = writer.pincode === currentUser.pincode;
             const isBargainable = writer.isBargainable !== false;
             const isWriterBusy = writer.isBusy === true;
+            const isPortfolioExpanded = viewingPortfolioId === writer.id;
             
             return (
-              <div key={writer.id} className={`bg-white rounded-[2rem] p-6 shadow-sm border transition-all group relative ${isWriterBusy ? 'opacity-70 grayscale-[0.5]' : ''} ${isNearby ? 'border-amber-200 ring-2 ring-amber-50' : isSameCollege ? 'border-indigo-200 ring-2 ring-indigo-50' : 'border-slate-100 hover:shadow-md'}`}>
+              <div key={writer.id} className={`bg-white rounded-[2.5rem] p-6 shadow-sm border transition-all group relative ${isWriterBusy ? 'opacity-70 grayscale-[0.5]' : ''} ${isNearby ? 'border-amber-200 ring-2 ring-amber-50' : isSameCollege ? 'border-indigo-200 ring-2 ring-indigo-50' : 'border-slate-100 hover:shadow-md'}`}>
                 
                 {isWriterBusy && (
                   <div className="absolute top-4 right-4 z-10">
@@ -150,13 +152,44 @@ const WritersList: React.FC<WritersListProps> = ({ users, assignerTasks, current
                    </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                {/* Portfolio Preview Panel */}
+                {isPortfolioExpanded && (
+                  <div className="mb-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 animate-in slide-in-from-top-2 duration-300 text-left">
+                    <p className="text-[8px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-2">Work Samples Portfolio</p>
+                    <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
+                      {writer.portfolio && writer.portfolio.length > 0 ? (
+                        writer.portfolio.map((item, idx) => (
+                          <a 
+                            key={idx} 
+                            href={item.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200 hover:border-indigo-500 transition-all group/item"
+                          >
+                            <span className="text-[10px] font-black text-slate-700 truncate flex-1 pr-2">{item.title}</span>
+                            <i className="fas fa-external-link-alt text-[8px] text-slate-300 group-hover/item:text-indigo-600"></i>
+                          </a>
+                        ))
+                      ) : (
+                        <p className="text-[9px] text-slate-400 font-medium italic py-2 text-center">Writer hasn't added samples yet.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-4 border-t border-slate-50">
+                  <button 
+                    onClick={() => setViewingPortfolioId(isPortfolioExpanded ? null : writer.id)}
+                    className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${isPortfolioExpanded ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-slate-50 text-slate-400 border border-slate-100 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100'}`}
+                  >
+                    {isPortfolioExpanded ? 'Hide Samples' : 'Work Samples'}
+                  </button>
                   <button 
                     onClick={() => !isWriterBusy && setSelectedWriter(writer)}
                     disabled={isWriterBusy}
-                    className={`w-full py-3 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg transition-all transform active:scale-95 ${isWriterBusy ? 'bg-slate-100 text-slate-400 shadow-none cursor-not-allowed' : isNearby ? 'bg-amber-500 text-white shadow-amber-100 hover:bg-amber-600' : 'bg-indigo-600 text-white shadow-indigo-100 hover:bg-indigo-700'}`}
+                    className={`flex-[2] py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg transition-all transform active:scale-95 ${isWriterBusy ? 'bg-slate-100 text-slate-400 shadow-none cursor-not-allowed' : isNearby ? 'bg-amber-500 text-white shadow-amber-100 hover:bg-amber-600' : 'bg-indigo-600 text-white shadow-indigo-100 hover:bg-indigo-700'}`}
                   >
-                    {isWriterBusy ? 'Writer Busy' : 'Ask for Help'}
+                    {isWriterBusy ? 'Writer Busy' : 'Hire Writer'}
                   </button>
                 </div>
               </div>

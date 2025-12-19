@@ -50,6 +50,11 @@ export interface Message {
   fileUrl?: string;
 }
 
+export interface PortfolioItem {
+  title: string;
+  url: string;
+}
+
 export interface UserProfile {
   id: string;
   username: string;
@@ -67,6 +72,7 @@ export interface UserProfile {
   collegeName?: string;
   pincode?: string;
   isBargainable?: boolean;
+  portfolio?: PortfolioItem[];
 }
 
 export interface Notification {

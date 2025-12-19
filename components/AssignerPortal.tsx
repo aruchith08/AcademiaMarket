@@ -6,6 +6,7 @@ import Dashboard from './Dashboard.tsx';
 import TaskForm from './TaskForm.tsx';
 import WritersList from './WritersList.tsx';
 import MessagesHub from './MessagesHub.tsx';
+import AvatarSelector from './AvatarSelector.tsx';
 
 interface AssignerPortalProps {
   user: UserProfile;
@@ -22,12 +23,14 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
   tasks, 
   allUsers,
   onLogout, 
+  onUpdateUser,
   onFirestoreUpdate, 
   onFirestoreCreate 
 }) => {
   const [activeTab, setActiveTab] = useState<'home' | 'tasks' | 'writers' | 'messages' | 'profile'>('home');
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
 
   const myTasks = tasks.filter(t => t.assignerId === user.id);
   const selectedTask = tasks.find(t => t.id === selectedTaskId) || null;
@@ -63,6 +66,10 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
         status: TaskStatus.IN_PROGRESS 
       });
     }
+  };
+
+  const handleAvatarChange = (newAvatar: string) => {
+    onUpdateUser({ ...user, avatar: newAvatar });
   };
 
   return (
@@ -128,7 +135,7 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
           ) : (
             <>
               {activeTab === 'home' && <Dashboard role="assigner" tasks={myTasks} />}
-              {activeTab === 'writers' && <WritersList users={allUsers} assignerTasks={myTasks} onAsk={(w, tId) => handleHandshake(tId, w.id, 'ask')} />}
+              {activeTab === 'writers' && <WritersList users={allUsers} assignerTasks={myTasks} currentUser={user} onAsk={(w, tId) => handleHandshake(tId, w.id, 'ask')} />}
               {activeTab === 'tasks' && (
                 <div className="space-y-8 animate-in fade-in duration-500">
                   <div className="flex items-center justify-between">
@@ -164,10 +171,28 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
               {activeTab === 'profile' && (
                 <div className="max-w-2xl mx-auto bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100 animate-in zoom-in-95 duration-200">
                    <div className="flex flex-col items-center text-center gap-6">
-                      <img src={user.avatar} className="w-32 h-32 rounded-[2.5rem] object-cover ring-4 ring-slate-50 shadow-md" />
+                      <div className="relative group">
+                        <img src={user.avatar} className="w-32 h-32 rounded-[2.5rem] object-cover ring-4 ring-slate-50 shadow-md bg-slate-50" />
+                        <button 
+                          onClick={() => setShowAvatarSelector(true)}
+                          className="absolute -bottom-2 -right-2 w-10 h-10 bg-indigo-600 text-white rounded-xl border-4 border-white flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
+                        >
+                          <i className="fas fa-pen text-[10px]"></i>
+                        </button>
+                      </div>
                       <div>
                         <h2 className="text-3xl font-black text-slate-800 tracking-tight">{user.name}</h2>
-                        <p className="text-indigo-600 font-bold uppercase text-[10px] tracking-widest mt-1">Student Assigner</p>
+                        <div className="flex flex-col items-center gap-1 mt-2">
+                           <div className="flex items-center gap-2">
+                             <i className="fas fa-university text-indigo-400 text-xs"></i>
+                             <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">{user.collegeName || 'N/A'}</p>
+                           </div>
+                           <div className="flex items-center gap-2">
+                             <i className="fas fa-location-dot text-amber-400 text-xs"></i>
+                             <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Pincode: {user.pincode || 'N/A'}</p>
+                           </div>
+                        </div>
+                        <p className="text-indigo-600 font-bold uppercase text-[10px] tracking-widest mt-2">ID: @{user.username}</p>
                       </div>
                       <div className="w-full grid grid-cols-1 gap-4 mt-4">
                          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
@@ -185,6 +210,14 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
           )}
         </section>
       </main>
+
+      {showAvatarSelector && (
+        <AvatarSelector 
+          currentAvatar={user.avatar} 
+          onSelect={handleAvatarChange} 
+          onClose={() => setShowAvatarSelector(false)} 
+        />
+      )}
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 px-6 py-4 flex items-center justify-between md:hidden z-40 shadow-[0_-8px_30px_rgb(0,0,0,0.06)]">
         <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'home' ? 'text-indigo-600' : 'text-slate-400'}`}>

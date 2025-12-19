@@ -64,4 +64,7 @@ export interface UserProfile {
   bio?: string;
   specialties?: string[];
   isBusy?: boolean;
+  collegeName?: string;
+  pincode?: string;
+  isBargainable?: boolean;
 }

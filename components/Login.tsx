@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { UserProfile, UserRole } from '../types.ts';
 import { db, sanitizeForFirestore } from '../lib/firebase.ts';
+import { getRandomAvatar } from '../constants.ts';
+import { TELANGANA_COLLEGES } from '../colleges.ts';
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 interface LoginProps {
@@ -13,8 +15,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [role, setRole] = useState<UserRole>('assigner');
   const [username, setUsername] = useState('');
   const [name, setName] = useState('');
+  const [collegeName, setCollegeName] = useState('');
+  const [pincode, setPincode] = useState('');
   const [password, setPassword] = useState('');
   const [pricePerPage, setPricePerPage] = useState('10.00');
+  const [isBargainable, setIsBargainable] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -27,16 +32,20 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     const cleanUsername = username.toLowerCase().trim();
 
-    // 1. Basic validation
     if (!cleanUsername || !password) {
       setError('Please fill in all fields');
       setLoading(false);
       return;
     }
 
-    // 2. Suffix enforcement
     if (!cleanUsername.endsWith(requiredSuffix)) {
       setError(`For ${role}s, username must end with ${requiredSuffix}`);
+      setLoading(false);
+      return;
+    }
+
+    if (isRegistering && !/^\d{6}$/.test(pincode)) {
+      setError('Please enter a valid 6-digit pincode');
       setLoading(false);
       return;
     }
@@ -46,15 +55,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       const userSnap = await getDoc(userRef);
 
       if (isRegistering) {
-        // REGISTRATION FLOW
         if (userSnap.exists()) {
           setError(`Account "${cleanUsername}" already exists.`);
           setLoading(false);
           return;
         }
 
-        if (!name) {
-          setError('Please enter your full name');
+        if (!name || !collegeName || !pincode) {
+          setError('Please fill in all registration fields');
           setLoading(false);
           return;
         }
@@ -73,8 +81,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           role,
           rating: 5,
           completedTasks: 0,
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanUsername.split('@')[0]}`,
+          avatar: getRandomAvatar(),
           password,
+          collegeName: collegeName.trim(),
+          pincode: pincode.trim(),
         };
 
         if (role === 'writer') {
@@ -83,14 +93,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           newUser.specialties = ['General'];
           newUser.bio = 'Student writer ready to help.';
           newUser.isBusy = false;
+          newUser.isBargainable = isBargainable;
         }
 
         await setDoc(userRef, sanitizeForFirestore(newUser));
         onLogin(newUser);
       } else {
-        // LOGIN FLOW
         if (!userSnap.exists()) {
-          // Check if they used the wrong suffix for their role
           const otherSuffix = role === 'assigner' ? '@writ' : '@assign';
           if (cleanUsername.endsWith(otherSuffix)) {
              setError(`This is a ${role === 'assigner' ? 'Writer' : 'Assigner'} account. Please switch roles above.`);
@@ -109,7 +118,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           return;
         }
 
-        // Double check role mismatch (safety layer)
         if (userData.role !== role) {
           setError(`This account is registered as a ${userData.role}. Please select the correct role.`);
           setLoading(false);
@@ -158,17 +166,57 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         <form onSubmit={handleAuth} className="space-y-4">
           {isRegistering && (
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
-              <input 
-                type="text" 
-                required
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                className="w-full px-5 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-medium text-sm" 
-                placeholder="e.g. Rahul Sharma" 
-              />
-            </div>
+            <>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                <input 
+                  type="text" 
+                  required
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  className="w-full px-5 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-medium text-sm" 
+                  placeholder="e.g. Rahul Sharma" 
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">College</label>
+                  <select 
+                    required
+                    value={collegeName} 
+                    onChange={(e) => setCollegeName(e.target.value)} 
+                    className="w-full px-5 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-medium text-sm appearance-none"
+                  >
+                    <option value="">Select...</option>
+                    {TELANGANA_COLLEGES.map(college => (
+                      <option key={college} value={college}>{college}</option>
+                    ))}
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Pincode (Home)</label>
+                  <input 
+                    type="text" 
+                    required
+                    maxLength={6}
+                    value={pincode} 
+                    onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))} 
+                    className="w-full px-5 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-black text-sm" 
+                    placeholder="500001" 
+                  />
+                </div>
+              </div>
+              {collegeName === 'Other' && (
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Enter college name"
+                  className="w-full px-5 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-medium text-sm animate-in slide-in-from-top-1"
+                  onChange={(e) => setCollegeName(e.target.value)}
+                />
+              )}
+            </>
           )}
           
           <div className="space-y-1">
@@ -206,16 +254,31 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
 
           {isRegistering && role === 'writer' && (
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Base Price (₹ / Page)</label>
-              <input 
-                type="number" 
-                min="10" 
-                step="1" 
-                value={pricePerPage} 
-                onChange={(e) => setPricePerPage(e.target.value)} 
-                className="w-full px-5 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none font-black text-indigo-600 text-sm" 
-              />
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Base Price (₹ / Page)</label>
+                <input 
+                  type="number" 
+                  min="10" 
+                  step="1" 
+                  value={pricePerPage} 
+                  onChange={(e) => setPricePerPage(e.target.value)} 
+                  className="w-full px-5 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none font-black text-indigo-600 text-sm" 
+                />
+              </div>
+              <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                <div>
+                  <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Open to Bargaining</p>
+                  <p className="text-[8px] text-emerald-600 font-medium">Allows assigners to negotiate the price</p>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setIsBargainable(!isBargainable)}
+                  className={`w-12 h-6 rounded-full p-1 transition-all ${isBargainable ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                >
+                  <div className={`w-4 h-4 bg-white rounded-full transition-all transform ${isBargainable ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                </button>
+              </div>
             </div>
           )}
 

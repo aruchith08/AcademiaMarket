@@ -41,7 +41,7 @@ const App: React.FC = () => {
       }
     );
 
-    // Sync Users (for discovering writers)
+    // Sync Users (for discovering writers and matching colleges)
     const qUsers = query(collection(db, 'users'));
     const unsubUsers = onSnapshot(qUsers, (snapshot) => {
       const usersList = snapshot.docs.map(doc => ({
@@ -71,7 +71,6 @@ const App: React.FC = () => {
   }
 
   const handleLogin = (userData: UserProfile) => {
-    // Login component now handles verification and initial document creation
     setUser(userData);
   };
 
@@ -131,6 +130,7 @@ const App: React.FC = () => {
         <WriterPortal 
           user={user} 
           tasks={tasks} 
+          allUsers={allUsers}
           onUpdateUser={handleUpdateUser}
           onLogout={() => setUser(null)}
           onFirestoreUpdate={handleUpdateSingleTask}

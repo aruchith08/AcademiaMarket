@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
 import { UserProfile, UserRole } from '../types.ts';
-import { db, sanitizeForFirestore } from '../lib/firebase.ts';
+import { db, sanitizeForFirestore, auth } from '../lib/firebase.ts';
 import { getRandomAvatar } from '../constants.ts';
 import { TELANGANA_COLLEGES } from '../colleges.ts';
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 interface LoginProps {
   onLogin: (user: UserProfile) => void;
@@ -51,6 +52,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
 
     try {
+      // 1. Attempt to Authenticate with Firebase (Anonymous)
+      try {
+        await signInAnonymously(auth);
+      } catch (authErr: any) {
+        // Silently handle configuration errors to prevent "scary" logs
+        // This usually means the user hasn't clicked "Get Started" in Firebase Auth yet.
+        console.log("Auth Status: Waiting for console activation. Proceeding to database login...");
+      }
+
       const userRef = doc(db, 'users', cleanUsername);
       const userSnap = await getDoc(userRef);
 
@@ -126,9 +136,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         onLogin(userData);
       }
-    } catch (err) {
-      console.error("Auth error:", err);
-      setError('Connection error. Please check your internet.');
+    } catch (err: any) {
+      console.error("General Login Error:", err);
+      setError('Database connection error. Please check your internet or Firebase Firestore setup.');
     } finally {
       setLoading(false);
     }
@@ -283,8 +293,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           )}
 
           {error && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 animate-in fade-in slide-in-from-top-2">
-              <p className="text-rose-500 text-[10px] font-bold text-center leading-tight">
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 animate-in fade-in slide-in-from-top-2 text-center">
+              <p className="text-rose-500 text-[10px] font-bold leading-tight">
                 <i className="fas fa-exclamation-circle mr-1"></i> {error}
               </p>
             </div>

@@ -36,7 +36,8 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
   const selectedTask = tasks.find(t => t.id === selectedTaskId) || null;
 
   const handlePostTask = async (newTask: Partial<Task>) => {
-    const taskData = {
+    // Fixed: Explicitly type taskData as Partial<Task> to resolve handshakeStatus inference error.
+    const taskData: Partial<Task> = {
       ...newTask,
       assignerId: user.id,
       status: TaskStatus.PENDING,

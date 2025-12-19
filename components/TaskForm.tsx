@@ -1,9 +1,7 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { calculateEstimation } from '../services/pricingUtils.ts';
 import { Task, TaskStatus, TaskAttachment } from '../types.ts';
-import { storage } from '../lib/firebase.ts';
-import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
 interface TaskFormProps {
   onClose: () => void;
@@ -22,10 +20,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
     bargainEnabled: true
   });
 
-  const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [est, setEst] = useState({ base: 0, urgency: 0, total: 10, details: '' });
 
   useEffect(() => {
@@ -40,42 +34,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
     }
   }, [formData.pages, formData.format, formData.deadline, formData.basePricePerPage]);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    setIsUploading(true);
-    const newAttachments: TaskAttachment[] = [...attachments];
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      try {
-        const storageRef = ref(storage, `tasks/attachments/${Date.now()}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(snapshot.ref);
-        
-        newAttachments.push({
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          url: url,
-          path: snapshot.ref.fullPath
-        });
-      } catch (err) {
-        console.error("Upload failed", err);
-        alert(`Failed to upload ${file.name}`);
-      }
-    }
-
-    setAttachments(newAttachments);
-    setIsUploading(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const removeAttachment = (index: number) => {
-    setAttachments(attachments.filter((_, i) => i !== index));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -84,7 +42,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
       estimatedPrice: est.total,
       status: TaskStatus.PENDING,
       handshakeStatus: 'none',
-      attachments,
+      attachments: [], // Currently disabled
       createdAt: new Date().toISOString()
     });
   };
@@ -146,29 +104,19 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
             </div>
 
             <div className="space-y-3 pt-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cloud Storage Files ({attachments.length})</label>
-              <div className="flex flex-wrap gap-3">
-                {attachments.map((file, idx) => (
-                  <div key={idx} className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 py-2 rounded-xl group animate-in slide-in-from-left-2">
-                    <i className={`fas ${file.type.includes('image') ? 'fa-image' : 'fa-file-pdf'} text-indigo-400`}></i>
-                    <span className="text-[10px] font-bold text-slate-600 max-w-[120px] truncate">{file.name}</span>
-                    <button type="button" onClick={() => removeAttachment(idx)} className="text-rose-400 hover:text-rose-600 transition-colors">
-                      <i className="fas fa-times-circle"></i>
-                    </button>
-                  </div>
-                ))}
-                <button 
-                  type="button" 
-                  disabled={isUploading}
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 hover:border-indigo-300 hover:text-indigo-500 transition-all active:scale-95"
-                >
-                  <i className={`fas ${isUploading ? 'fa-spinner fa-spin' : 'fa-paperclip'}`}></i>
-                  <span className="text-[10px] font-black uppercase tracking-widest">{isUploading ? 'Uploading...' : 'Upload to Cloud'}</span>
-                </button>
-                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Documents & Attachments</label>
+              
+              <div className="p-6 bg-indigo-50/50 rounded-2xl border-2 border-dashed border-indigo-100 flex flex-col items-center justify-center text-center gap-3">
+                 <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-indigo-500 shadow-sm">
+                    <i className="fas fa-tools text-xl"></i>
+                 </div>
+                 <div>
+                    <p className="text-xs font-black text-slate-700 uppercase tracking-tight">File Uploads Currently Unavailable</p>
+                    <p className="text-[9px] text-slate-500 font-medium leading-relaxed max-w-xs mx-auto">We are working on this feature! For now, please include links to documents (Google Drive/Dropbox) in the description above.</p>
+                 </div>
               </div>
-              <p className="text-[9px] text-slate-400 italic">Files are stored securely on Firebase Cloud Storage.</p>
+              
+              <p className="text-[9px] text-slate-400 italic text-center">Restoration in progress... 🚀</p>
             </div>
           </div>
 
@@ -190,7 +138,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit }) => {
 
           <div className="flex gap-4 pt-4 border-t sticky bottom-0 bg-white">
             <button type="button" onClick={onClose} className="flex-1 py-4 font-black text-slate-400 text-[10px] tracking-widest uppercase">Discard</button>
-            <button type="submit" disabled={isUploading} className="flex-[2] py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs tracking-widest uppercase shadow-xl shadow-indigo-100 active:scale-95 transition-all disabled:opacity-50">Post Project Now</button>
+            <button type="submit" className="flex-[2] py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs tracking-widest uppercase shadow-xl shadow-indigo-100 active:scale-95 transition-all">Post Project Now</button>
           </div>
         </form>
       </div>

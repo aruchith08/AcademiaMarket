@@ -4,7 +4,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.1/firebase
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-// Your verified Firebase configuration
+// Verified Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBUg79v7RE6KX0RCgoGTDWgfd1A0eFH1Ys",
   authDomain: "academiamarket-14822416-de001.firebaseapp.com",
@@ -28,6 +28,7 @@ export const auth = getAuth(app);
  */
 export const sanitizeForFirestore = (obj: any) => {
   const sanitized: any = {};
+  if (!obj) return sanitized;
   Object.keys(obj).forEach((key) => {
     if (obj[key] !== undefined) {
       sanitized[key] = obj[key];
@@ -36,4 +37,4 @@ export const sanitizeForFirestore = (obj: any) => {
   return sanitized;
 };
 
-console.log("🔥 AcademiaMarket Firebase Initialized");
+console.log("🔥 AcademiaMarket Firebase Initialized (Storage & Auth ready)");

@@ -50,6 +50,9 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
     setSelectedTaskId(null);
   };
 
+  const supportEmail = "academiamarkethelp@gmail.com";
+  const mailtoLink = `mailto:${supportEmail}?subject=Support Request - ${user.name} (@${user.username})`;
+
   return (
     <div className="pb-24 md:pb-0">
       <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-40 px-6 py-4 flex items-center justify-between shadow-sm">
@@ -58,13 +61,22 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
             <i className="fas fa-graduation-cap"></i>
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-800 tracking-tighter leading-none">AcademiaMarket</h1>
-            <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mt-1">Student Hub</p>
+            <h1 className="text-xl font-black text-slate-800 tracking-tighter leading-none text-left">AcademiaMarket</h1>
+            <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mt-1 text-left">Student Hub</p>
           </div>
         </div>
-        <button onClick={() => {setActiveTab('profile'); setSelectedTaskId(null);}} className="w-10 h-10 rounded-2xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm ring-2 ring-indigo-50 transition-all hover:scale-110">
-          <img src={user.avatar} className="w-full h-full object-cover" alt="Profile" />
-        </button>
+        <div className="flex items-center gap-3">
+          <a 
+            href={mailtoLink}
+            className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center transition-all hover:bg-indigo-100 active:scale-95 md:hidden"
+            title="Contact Support"
+          >
+            <i className="fas fa-headset text-sm"></i>
+          </a>
+          <button onClick={() => {setActiveTab('profile'); setSelectedTaskId(null);}} className="w-10 h-10 rounded-2xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm ring-2 ring-indigo-50 transition-all hover:scale-110">
+            <img src={user.avatar} className="w-full h-full object-cover" alt="Profile" />
+          </button>
+        </div>
       </header>
 
       <main className="max-w-7xl mx-auto p-4 md:p-8 flex flex-col md:flex-row gap-8">
@@ -73,7 +85,16 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
           <button onClick={() => {setActiveTab('writers'); setSelectedTaskId(null);}} className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'writers' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:bg-slate-100'}`}><i className="fas fa-user-edit"></i> Browse Writers</button>
           <button onClick={() => {setActiveTab('tasks'); setSelectedTaskId(null);}} className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'tasks' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:bg-slate-100'}`}><i className="fas fa-tasks"></i> My Projects</button>
           <button onClick={() => {setActiveTab('messages'); setSelectedTaskId(null);}} className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'messages' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:bg-slate-100'}`}><i className="fas fa-comment-dots"></i> Conversations</button>
-          <div className="mt-8"><button onClick={() => setShowTaskForm(true)} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black text-xs tracking-widest uppercase shadow-lg shadow-emerald-100 hover:bg-emerald-600 active:scale-95 transition-all">New Project</button></div>
+          <div className="mt-4"><button onClick={() => setShowTaskForm(true)} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black text-xs tracking-widest uppercase shadow-lg shadow-emerald-100 hover:bg-emerald-600 active:scale-95 transition-all">New Project</button></div>
+          
+          <div className="mt-auto pt-8">
+            <a 
+              href={mailtoLink}
+              className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100"
+            >
+              <i className="fas fa-headset"></i> Support & Feedback
+            </a>
+          </div>
         </aside>
 
         <section className="flex-1">

@@ -142,6 +142,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
   };
 
+  const mailtoLink = "mailto:academiamarkethelp@gmail.com?subject=Login Support - AcademiaMarket";
+
   return (
     <div className="fixed inset-0 bg-indigo-600 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white/95 backdrop-blur-xl w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 md:p-10 relative z-10 border border-white/20 my-auto">
@@ -310,18 +312,29 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </button>
         </form>
 
-        <div className="mt-8 text-center">
-          <p className="text-sm text-slate-400 font-medium">{isRegistering ? 'Already have an account?' : 'New to the platform?'}</p>
-          <button 
-            type="button"
-            onClick={() => {
-              setIsRegistering(!isRegistering);
-              setError('');
-            }} 
-            className="text-indigo-600 font-black text-sm hover:underline mt-1"
-          >
-            {isRegistering ? 'Sign In' : 'Create an Account'}
-          </button>
+        <div className="mt-8 text-center space-y-4">
+          <div>
+            <p className="text-sm text-slate-400 font-medium">{isRegistering ? 'Already have an account?' : 'New to the platform?'}</p>
+            <button 
+              type="button"
+              onClick={() => {
+                setIsRegistering(!isRegistering);
+                setError('');
+              }} 
+              className="text-indigo-600 font-black text-sm hover:underline mt-1"
+            >
+              {isRegistering ? 'Sign In' : 'Create an Account'}
+            </button>
+          </div>
+          
+          <div className="pt-4 border-t border-slate-100">
+             <a 
+               href={mailtoLink}
+               className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors inline-flex items-center gap-2"
+             >
+               <i className="fas fa-question-circle"></i> Need Help? Contact Support
+             </a>
+          </div>
         </div>
       </div>
     </div>

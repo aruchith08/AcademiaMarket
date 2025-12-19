@@ -55,6 +55,9 @@ const WriterPortal: React.FC<WriterPortalProps> = ({
     setSelectedTaskId(null);
   };
 
+  const supportEmail = "academiamarkethelp@gmail.com";
+  const mailtoLink = `mailto:${supportEmail}?subject=Support Request - ${user.name} (@${user.username})`;
+
   return (
     <div className="pb-24 md:pb-0">
       <header className="bg-white/80 backdrop-blur-lg border-b sticky top-0 z-40 px-6 py-4 flex items-center justify-between shadow-sm">
@@ -62,14 +65,23 @@ const WriterPortal: React.FC<WriterPortalProps> = ({
           <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
             <i className="fas fa-pen-nib"></i>
           </div>
-          <div className="leading-tight">
+          <div className="leading-tight text-left">
             <h1 className="text-xl font-black text-slate-800 tracking-tighter">AcademiaMarket</h1>
             <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Writer Mode</span>
           </div>
         </div>
-        <button onClick={() => {setActiveTab('profile'); setSelectedTaskId(null);}} className="w-10 h-10 rounded-2xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm hover:ring-2 hover:ring-indigo-100 transition-all active:scale-95">
-          <img src={user.avatar} className="w-full h-full object-cover" alt="Profile" />
-        </button>
+        <div className="flex items-center gap-3">
+          <a 
+            href={mailtoLink}
+            className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center transition-all hover:bg-indigo-100 active:scale-95 md:hidden"
+            title="Contact Support"
+          >
+            <i className="fas fa-headset text-sm"></i>
+          </a>
+          <button onClick={() => {setActiveTab('profile'); setSelectedTaskId(null);}} className="w-10 h-10 rounded-2xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm hover:ring-2 hover:ring-indigo-100 transition-all active:scale-95">
+            <img src={user.avatar} className="w-full h-full object-cover" alt="Profile" />
+          </button>
+        </div>
       </header>
 
       <main className="max-w-7xl mx-auto p-4 md:p-8 flex flex-col md:flex-row gap-8">
@@ -79,6 +91,15 @@ const WriterPortal: React.FC<WriterPortalProps> = ({
           <button onClick={() => {setActiveTab('my-projects'); setSelectedTaskId(null);}} className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'my-projects' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100' : 'text-slate-400 hover:bg-slate-100'}`}><i className="fas fa-tasks"></i> Active Work</button>
           <button onClick={() => {setActiveTab('messages'); setSelectedTaskId(null);}} className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'messages' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100' : 'text-slate-400 hover:bg-slate-100'}`}><i className="fas fa-comment-dots"></i> Messages</button>
           <button onClick={() => {setActiveTab('profile'); setSelectedTaskId(null);}} className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'profile' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100' : 'text-slate-400 hover:bg-slate-100'}`}><i className="fas fa-user-cog"></i> Settings</button>
+          
+          <div className="mt-auto pt-8 text-left">
+            <a 
+              href={mailtoLink}
+              className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100"
+            >
+              <i className="fas fa-headset"></i> Support & Feedback
+            </a>
+          </div>
         </aside>
 
         <section className="flex-1 min-h-[70vh]">

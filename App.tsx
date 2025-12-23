@@ -62,11 +62,11 @@ const App: React.FC = () => {
               }
               if (user.role === 'writer' && task.writerId === user.id) {
                 if (task.handshakeStatus === 'accepted' && oldTask.handshakeStatus !== 'accepted') {
-                  addNotification("Hired!", `Your proposal for "${task.title}" was accepted!`, 'success', task.id);
+                  addNotification("Partnered!", `Proposal for "${task.title}" was accepted!`, 'success', task.id);
                 } else if (task.handshakeStatus === 'assigner_invited' && oldTask.handshakeStatus !== 'assigner_invited') {
-                  addNotification("Direct Invitation", `You've been invited to work on "${task.title}"`, 'info', task.id);
+                  addNotification("Direct Invitation", `You've been invited for "${task.title}"`, 'info', task.id);
                 } else if (task.status === TaskStatus.COMPLETED && oldTask.status !== TaskStatus.COMPLETED) {
-                  addNotification("Payment Finalized", `Task "${task.title}" marked as complete.`, 'success', task.id);
+                  addNotification("Completed!", `Task "${task.title}" marked as complete.`, 'success', task.id);
                 }
               }
             }
@@ -159,9 +159,12 @@ const App: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-indigo-600 flex flex-col items-center justify-center text-white p-6">
-        <i className="fas fa-graduation-cap text-6xl mb-6 animate-bounce"></i>
-        <h2 className="font-black text-xl mb-2 tracking-tighter text-center">AcademiaMarket</h2>
-        <p className="font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">Syncing Secure Environment...</p>
+        <div className="relative">
+          <i className="fas fa-graduation-cap text-6xl mb-6 animate-bounce"></i>
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-white/20 blur-sm rounded-full"></div>
+        </div>
+        <h2 className="font-black text-2xl mb-2 tracking-tighter text-center">AcademiaMarket</h2>
+        <p className="font-black uppercase tracking-[0.3em] text-[9px] animate-pulse opacity-70">Syncing Secure Environment...</p>
       </div>
     );
   }
@@ -169,10 +172,11 @@ const App: React.FC = () => {
   if (!user) return <Login onLogin={handleLogin} />;
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans relative">
-      <div className="fixed top-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none w-full max-w-sm">
+    <div className="min-h-screen bg-slate-50 font-sans relative overflow-x-hidden">
+      {/* Responsive Notification Toast System */}
+      <div className="fixed top-4 sm:top-6 right-0 left-0 sm:left-auto sm:right-6 z-[100] flex flex-col gap-2 sm:gap-3 pointer-events-none px-4 sm:px-0 w-full sm:max-w-sm">
         {notifications.map(n => (
-          <div key={n.id} className="pointer-events-auto bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 flex items-start gap-4 animate-in slide-in-from-right-8 fade-in duration-300">
+          <div key={n.id} className="pointer-events-auto bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-100 p-4 flex items-start gap-4 animate-in slide-in-from-top-4 sm:slide-in-from-right-8 fade-in duration-300">
              <div className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center ${
                n.type === 'success' ? 'bg-emerald-100 text-emerald-600' : 
                n.type === 'warning' ? 'bg-amber-100 text-amber-600' : 
@@ -184,11 +188,11 @@ const App: React.FC = () => {
                  n.type === 'message' ? 'fa-comment' : 'fa-info-circle'
                }`}></i>
              </div>
-             <div className="flex-1">
+             <div className="flex-1 min-w-0">
                 <h5 className="text-[11px] font-black uppercase tracking-widest text-slate-800">{n.title}</h5>
-                <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">{n.message}</p>
+                <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5 truncate">{n.message}</p>
              </div>
-             <button onClick={() => setNotifications(prev => prev.filter(notif => notif.id !== n.id))} className="text-slate-300 hover:text-slate-500">
+             <button onClick={() => setNotifications(prev => prev.filter(notif => notif.id !== n.id))} className="text-slate-300 hover:text-slate-500 shrink-0">
                <i className="fas fa-times text-[10px]"></i>
              </button>
           </div>

@@ -21,6 +21,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [pricePerPage, setPricePerPage] = useState('10.00');
   const [isBargainable, setIsBargainable] = useState(true);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -45,10 +47,17 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       return;
     }
 
-    if (isRegistering && !/^\d{6}$/.test(pincode)) {
-      setError('Please enter a valid 6-digit pincode');
-      setLoading(false);
-      return;
+    if (isRegistering) {
+      if (!agreedToTerms) {
+        setError('You must agree to the Academic Integrity Policy to continue.');
+        setLoading(false);
+        return;
+      }
+      if (!/^\d{6}$/.test(pincode)) {
+        setError('Please enter a valid 6-digit pincode');
+        setLoading(false);
+        return;
+      }
     }
 
     try {
@@ -92,7 +101,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           password,
           collegeName: collegeName.trim(),
           pincode: pincode.trim(),
-          portfolio: [] // Explicitly initialize empty portfolio for new users
+          portfolio: [] 
         };
 
         if (role === 'writer') {
@@ -292,6 +301,23 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </div>
           )}
 
+          {isRegistering && (
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+              <div className="flex items-start gap-3">
+                <input 
+                  type="checkbox" 
+                  id="terms" 
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <label htmlFor="terms" className="text-[10px] font-medium text-slate-600 leading-relaxed text-left">
+                  I agree to the <button type="button" onClick={() => setShowTermsModal(true)} className="text-indigo-600 font-black underline">Academic Integrity Policy</button>. I confirm I will use this platform only for <b>helping each other</b> with educational support.
+                </label>
+              </div>
+            </div>
+          )}
+
           {error && (
             <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 animate-in fade-in slide-in-from-top-2 text-center">
               <p className="text-rose-500 text-[10px] font-bold leading-tight">
@@ -302,8 +328,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
           <button 
             type="submit" 
-            disabled={loading}
-            className={`w-full py-4 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg transition-all transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-70 disabled:transform-none ${role === 'assigner' ? 'bg-indigo-600 shadow-indigo-100 hover:bg-indigo-700' : 'bg-emerald-600 shadow-emerald-100 hover:bg-emerald-700'}`}
+            disabled={loading || (isRegistering && !agreedToTerms)}
+            className={`w-full py-4 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg transition-all transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:grayscale disabled:transform-none ${role === 'assigner' ? 'bg-indigo-600 shadow-indigo-100 hover:bg-indigo-700' : 'bg-emerald-600 shadow-emerald-100 hover:bg-emerald-700'}`}
           >
             {loading ? (
               <i className="fas fa-spinner fa-spin mr-2"></i>
@@ -337,6 +363,64 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
         </div>
       </div>
+
+      {/* Academic Integrity Policy Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg max-h-[80vh] overflow-y-auto p-8 shadow-2xl animate-in zoom-in-95 duration-200 text-left border border-slate-100">
+            <div className="flex justify-between items-center mb-6 sticky top-0 bg-white pb-4">
+              <div>
+                <h3 className="text-xl font-black text-slate-800 tracking-tight">Academic Integrity Policy</h3>
+                <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-1">Ethical Usage Guidelines</p>
+              </div>
+              <button onClick={() => setShowTermsModal(false)} className="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-slate-100 transition-all">
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div className="space-y-6 text-sm font-medium text-slate-600 leading-relaxed">
+              <section className="space-y-3">
+                <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">1. Purpose of Use</h4>
+                <p>This platform is designed strictly for students to <b>help each other</b> through educational support. It is a collaborative space for peer-to-peer assistance in organizing and presenting original academic thoughts clearly.</p>
+              </section>
+
+              <section className="space-y-3">
+                <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">2. Academic Honesty</h4>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>Users must adhere to their respective institution's <b>Academic Integrity Policies</b>.</li>
+                  <li>Helping each other should <b>not</b> result in plagiarism or unauthorized assistance on graded work.</li>
+                  <li>Completing exams, graded quizzes, or final assessments for others is <b>strictly prohibited</b>.</li>
+                </ul>
+              </section>
+
+              <section className="space-y-3">
+                <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">3. Chat & Communication</h4>
+                <p>Chat rooms are provided for coordination and supportive learning dialogue. Misuse—including harassment, spamming, or sharing offensive content—is not tolerated.</p>
+              </section>
+
+              <section className="space-y-3">
+                <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">4. Content Sharing</h4>
+                <p>Users are responsible for the resources they share. Always ensure links are safe and respect copyright laws.</p>
+              </section>
+
+              <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                <p className="text-[10px] font-bold text-indigo-700 leading-normal">
+                  By clicking "I Understand and Agree", you commit to a culture of peer support that respects academic honesty. Failure to comply will lead to account suspension.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8">
+              <button 
+                onClick={() => { setAgreedToTerms(true); setShowTermsModal(false); }}
+                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100 active:scale-95 transition-all"
+              >
+                I Understand and Agree
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

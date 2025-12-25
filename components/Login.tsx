@@ -6,6 +6,7 @@ import { getRandomAvatar } from '../constants.ts';
 import { TELANGANA_COLLEGES } from '../colleges.ts';
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import UserGuide from './UserGuide.tsx';
 
 interface LoginProps {
   onLogin: (user: UserProfile) => void;
@@ -23,6 +24,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [isBargainable, setIsBargainable] = useState(true);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showUserGuide, setShowUserGuide] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -339,18 +341,28 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </form>
 
         <div className="mt-8 text-center space-y-4">
-          <div>
+          <div className="flex flex-col gap-2">
             <p className="text-sm text-slate-400 font-medium">{isRegistering ? 'Already have an account?' : 'New to the platform?'}</p>
-            <button 
-              type="button"
-              onClick={() => {
-                setIsRegistering(!isRegistering);
-                setError('');
-              }} 
-              className="text-indigo-600 font-black text-sm hover:underline mt-1"
-            >
-              {isRegistering ? 'Sign In' : 'Create an Account'}
-            </button>
+            <div className="flex justify-center gap-4">
+              <button 
+                type="button"
+                onClick={() => {
+                  setIsRegistering(!isRegistering);
+                  setError('');
+                }} 
+                className="text-indigo-600 font-black text-sm hover:underline"
+              >
+                {isRegistering ? 'Sign In' : 'Create an Account'}
+              </button>
+              <div className="w-[1px] h-4 bg-slate-200"></div>
+              <button 
+                type="button"
+                onClick={() => setShowUserGuide(true)}
+                className="text-slate-600 font-black text-sm hover:underline"
+              >
+                Learn How it Works
+              </button>
+            </div>
           </div>
           
           <div className="pt-4 border-t border-slate-100">
@@ -421,6 +433,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
         </div>
       )}
+
+      {showUserGuide && <UserGuide role={role} onClose={() => setShowUserGuide(false)} />}
     </div>
   );
 };

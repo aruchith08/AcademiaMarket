@@ -9,6 +9,7 @@ import AvatarSelector from './AvatarSelector.tsx';
 import TaskDetailView from './TaskDetailView.tsx';
 import AssignerProjects from './AssignerProjects.tsx';
 import AssignerSettings from './AssignerSettings.tsx';
+import UserGuide from './UserGuide.tsx';
 
 interface AssignerPortalProps {
   user: UserProfile;
@@ -28,6 +29,7 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  const [showUserGuide, setShowUserGuide] = useState(false);
 
   const myTasks = tasks.filter(t => t.assignerId === user.id);
   const selectedTask = tasks.find(t => t.id === selectedTaskId) || null;
@@ -66,13 +68,13 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <a 
-            href={mailtoLink}
-            className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center transition-all hover:bg-indigo-100 active:scale-95 md:hidden"
-            title="Contact Support"
+          <button 
+            onClick={() => setShowUserGuide(true)}
+            className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center transition-all hover:bg-indigo-100 active:scale-95"
+            title="How to Use"
           >
-            <i className="fas fa-headset text-sm"></i>
-          </a>
+            <i className="fas fa-circle-question text-sm"></i>
+          </button>
           <button onClick={() => {setActiveTab('profile'); setSelectedTaskId(null);}} className="w-10 h-10 rounded-2xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm ring-2 ring-indigo-50 transition-all hover:scale-110">
             <img src={user.avatar} className="w-full h-full object-cover" alt="Profile" />
           </button>
@@ -85,14 +87,22 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
           <button onClick={() => {setActiveTab('writers'); setSelectedTaskId(null);}} className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'writers' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:bg-slate-100'}`}><i className="fas fa-users-rays"></i> Find Helpers</button>
           <button onClick={() => {setActiveTab('tasks'); setSelectedTaskId(null);}} className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'tasks' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:bg-slate-100'}`}><i className="fas fa-clipboard-list"></i> My Requests</button>
           <button onClick={() => {setActiveTab('messages'); setSelectedTaskId(null);}} className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'messages' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:bg-slate-100'}`}><i className="fas fa-comment-dots"></i> Conversations</button>
-          <div className="mt-4"><button onClick={() => setShowTaskForm(true)} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black text-xs tracking-widest uppercase shadow-lg shadow-emerald-100 hover:bg-emerald-600 active:scale-95 transition-all">Ask for a Hand</button></div>
+          <div className="mt-4">
+            <button onClick={() => setShowTaskForm(true)} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black text-xs tracking-widest uppercase shadow-lg shadow-emerald-100 hover:bg-emerald-600 active:scale-95 transition-all">Ask for a Hand</button>
+          </div>
           
-          <div className="mt-auto pt-8">
+          <div className="mt-auto space-y-2 pt-8">
+            <button 
+              onClick={() => setShowUserGuide(true)}
+              className="w-full flex items-center gap-3 px-6 py-4 rounded-2xl bg-indigo-50 text-indigo-600 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-indigo-100"
+            >
+              <i className="fas fa-book-open"></i> App User Guide
+            </button>
             <a 
               href={mailtoLink}
               className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100"
             >
-              <i className="fas fa-headset"></i> Feedback & Support
+              <i className="fas fa-headset"></i> Support & Help
             </a>
           </div>
         </aside>
@@ -117,6 +127,8 @@ const AssignerPortal: React.FC<AssignerPortalProps> = ({
       </main>
 
       {showAvatarSelector && <AvatarSelector currentAvatar={user.avatar} onSelect={(a) => onUpdateUser({...user, avatar: a})} onClose={() => setShowAvatarSelector(false)} />}
+      {showUserGuide && <UserGuide role="assigner" onClose={() => setShowUserGuide(false)} />}
+
       <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 px-6 py-4 flex items-center justify-between md:hidden z-40">
         <button onClick={() => {setActiveTab('home'); setSelectedTaskId(null);}} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'home' ? 'text-indigo-600' : 'text-slate-400'}`}><i className="fas fa-home text-lg"></i><span className="text-[9px] font-black uppercase">Stats</span></button>
         <button onClick={() => {setActiveTab('tasks'); setSelectedTaskId(null);}} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'tasks' ? 'text-indigo-600' : 'text-slate-400'}`}><i className="fas fa-clipboard-list text-lg"></i><span className="text-[9px] font-black uppercase tracking-tighter">My List</span></button>

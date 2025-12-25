@@ -8,6 +8,7 @@ import WriterBoard from './WriterBoard.tsx';
 import WriterActiveWork from './WriterActiveWork.tsx';
 import WriterSettings from './WriterSettings.tsx';
 import TaskDetailView from './TaskDetailView.tsx';
+import UserGuide from './UserGuide.tsx';
 
 interface WriterPortalProps {
   user: UserProfile;
@@ -25,6 +26,7 @@ const WriterPortal: React.FC<WriterPortalProps> = ({
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  const [showUserGuide, setShowUserGuide] = useState(false);
 
   const myActiveTasks = tasks.filter(t => t.writerId === user.id);
   const selectedTask = tasks.find(t => t.id === selectedTaskId) || null;
@@ -71,13 +73,13 @@ const WriterPortal: React.FC<WriterPortalProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <a 
-            href={mailtoLink}
-            className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center transition-all hover:bg-indigo-100 active:scale-95 md:hidden"
-            title="Contact Support"
+          <button 
+            onClick={() => setShowUserGuide(true)}
+            className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center transition-all hover:bg-indigo-100 active:scale-95"
+            title="How it Works"
           >
-            <i className="fas fa-headset text-sm"></i>
-          </a>
+            <i className="fas fa-circle-question text-sm"></i>
+          </button>
           <button onClick={() => {setActiveTab('profile'); setSelectedTaskId(null);}} className="w-10 h-10 rounded-2xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm hover:ring-2 hover:ring-indigo-100 transition-all active:scale-95">
             <img src={user.avatar} className="w-full h-full object-cover" alt="Profile" />
           </button>
@@ -92,12 +94,18 @@ const WriterPortal: React.FC<WriterPortalProps> = ({
           <button onClick={() => {setActiveTab('messages'); setSelectedTaskId(null);}} className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'messages' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100' : 'text-slate-400 hover:bg-slate-100'}`}><i className="fas fa-comment-dots"></i> Chat</button>
           <button onClick={() => {setActiveTab('profile'); setSelectedTaskId(null);}} className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'profile' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100' : 'text-slate-400 hover:bg-slate-100'}`}><i className="fas fa-user-cog"></i> Profile</button>
           
-          <div className="mt-auto pt-8 text-left">
+          <div className="mt-auto space-y-2 pt-8 text-left">
+            <button 
+              onClick={() => setShowUserGuide(true)}
+              className="w-full flex items-center gap-3 px-6 py-4 rounded-2xl bg-indigo-50 text-indigo-600 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-indigo-100"
+            >
+              <i className="fas fa-book-open"></i> App User Guide
+            </button>
             <a 
               href={mailtoLink}
               className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100"
             >
-              <i className="fas fa-headset"></i> Support & Suggestions
+              <i className="fas fa-headset"></i> Support & Help
             </a>
           </div>
         </aside>
@@ -123,6 +131,7 @@ const WriterPortal: React.FC<WriterPortalProps> = ({
       </main>
 
       {showAvatarSelector && <AvatarSelector currentAvatar={user.avatar} onSelect={(a) => onUpdateUser({...user, avatar: a})} onClose={() => setShowAvatarSelector(false)} />}
+      {showUserGuide && <UserGuide role="writer" onClose={() => setShowUserGuide(false)} />}
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 px-6 py-4 flex items-center justify-between md:hidden z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]">
         <button onClick={() => {setActiveTab('home'); setSelectedTaskId(null);}} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'home' ? 'text-indigo-600 scale-110' : 'text-slate-400'}`}><i className="fas fa-chart-line text-lg"></i><span className="text-[9px] font-black uppercase tracking-tighter">Activity</span></button>

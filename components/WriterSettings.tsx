@@ -25,6 +25,9 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
   const [isAdding, setIsAdding] = useState(false);
   const [showAddedFeedback, setShowAddedFeedback] = useState(false);
 
+  const supportEmail = "academiamarkethelp@gmail.com";
+  const mailtoLink = `mailto:${supportEmail}?subject=Support Request - ${user.name} (@${user.username})`;
+
   const addPortfolioItem = async () => {
     setLinkError('');
     if (!newSampleTitle.trim() || !newSampleUrl.trim()) {
@@ -100,9 +103,9 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
             <i className="fas fa-pen text-[8px]"></i>
           </button>
         </div>
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tighter text-left">Helper Identity</h2>
-          <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-1 text-left">Manage your student profile</p>
+        <div className="text-left">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tighter">Helper Identity</h2>
+          <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-1">Manage your student profile</p>
         </div>
       </div>
       
@@ -212,19 +215,24 @@ const WriterSettings: React.FC<WriterSettingsProps> = ({ user, onUpdateUser, onL
           </div>
         </div>
 
-        {/* Fixed Open to Discuss Toggle Card */}
-        <div className="flex items-center justify-between p-5 sm:p-6 bg-indigo-50/50 rounded-2xl sm:rounded-3xl border border-indigo-100 text-left">
-          <div className="pr-4">
-            <p className="text-[10px] font-black text-indigo-900 uppercase tracking-widest">Open to Discuss</p>
-            <p className="text-[9px] text-indigo-500 font-medium leading-tight mt-1">Allows peers to suggest amount.</p>
-          </div>
-          <button 
-            type="button" 
-            onClick={() => setIsBargainable(!isBargainable)}
-            className={`w-10 h-5 sm:w-12 sm:h-6 rounded-full p-1 transition-all shrink-0 flex items-center ${isBargainable ? 'bg-indigo-600' : 'bg-slate-300'}`}
+        {/* Support & Contact Section */}
+        <div className="p-6 bg-slate-50 rounded-[2.5rem] border border-slate-100 text-left">
+          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Support & Contact</h4>
+          <a 
+            href={mailtoLink}
+            className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 hover:border-indigo-500 transition-all group"
           >
-            <div className={`w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full shadow-sm transition-all transform ${isBargainable ? 'translate-x-5 sm:translate-x-6' : 'translate-x-0'}`}></div>
-          </button>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                <i className="fas fa-headset"></i>
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-black text-slate-800">Support Desk</p>
+                <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter">Need Help? Chat with Us</p>
+              </div>
+            </div>
+            <i className="fas fa-chevron-right text-[10px] text-slate-300 group-hover:text-indigo-600 transition-all"></i>
+          </a>
         </div>
 
         <div className="flex flex-col gap-3 pt-4">

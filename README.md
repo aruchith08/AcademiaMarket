@@ -2,6 +2,8 @@
 
 ### *Connecting Students through Collaborative Academic Support*
 
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/953db5b1-1e1a-4f98-807e-f2f9b46d653f" />
+
 **AcademiaMarket** is a high-fidelity, peer-to-peer (P2P) marketplace designed specifically for the university ecosystem. It provides a secure environment where students can outsource time-intensive, manual academic tasks—such as record book handwriting, assignment formatting, and note transcription—to fellow students within their local campus community.
 
 ---
